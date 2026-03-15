@@ -90,6 +90,7 @@ pipeline {
 				} // docker
 			} // agent
 			steps {
+				sh 'npm run check:engines'
 				sh 'npm ci'
 				sh 'npm run build-packages'
 				sh 'node webapp.js release'
@@ -111,6 +112,7 @@ pipeline {
 								label 'win-native'
 							}
 							steps {
+								bat "npm run check:engines"
 								bat "npm ci"
 								// building packages builds node-mimimi
 								bat "npm run build-packages"
@@ -242,6 +244,7 @@ pipeline {
 		    stages {
                 stage('Preparation for sign and upload') {
                     steps {
+                        sh 'npm run check:engines'
                         sh 'npm ci'
                         sh 'npm run build-packages'
                     }
@@ -352,6 +355,7 @@ def uploadArtifacts(artifactId, filesPathAndExt) {
 def initBuildArea() {
 	sh 'node -v'
 	sh 'npm -v'
+    sh 'npm run check:engines'
     sh 'npm ci'
     sh 'npm run build-packages'
     sh 'rm -rf ./build/*'

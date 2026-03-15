@@ -63,6 +63,7 @@ pipeline {
                 sh 'npm -v'
                 sh 'node -v'
 
+            	sh 'npm run check:engines'
             	sh 'npm ci'
             	sh 'npm run build-packages'
 				sh 'node webapp.js release'

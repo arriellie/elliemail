@@ -67,6 +67,7 @@ pipeline {
 				}
 			}
 			steps {
+				sh "npm run check:engines"
 				sh "npm ci"
 				script { // create release notes
 					def android = params.googlePlayStore || params.github ? pregenerateReleaseNotes("android", env.VERSION) : null
@@ -277,6 +278,7 @@ filePath can be null
 def writeReleaseNotes(String platform, String displayName, String version, String filePath) {
 	script {
 		catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: "Failed to create github release page for ${platform}") {
+			sh "npm run check:engines"
 			sh "npm ci"
 			writeFile file: "notes.txt", text: platform == "ios" ? releaseNotes.ios : releaseNotes.android
 			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
