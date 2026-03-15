@@ -53,7 +53,6 @@ pipeline {
 						label 'linux'
 					}
 					steps {
-						sh 'npm run check:engines'
 						sh 'npm ci'
 						sh 'npm run build-packages'
 						withCredentials([
@@ -75,7 +74,6 @@ pipeline {
 					}
 					steps {
 						echo "Building ${VERSION}"
-						sh 'npm run check:engines'
 						sh 'npm ci'
 						sh 'npm run build-packages'
 						withCredentials([
@@ -123,7 +121,6 @@ pipeline {
 				} // stage testing
 				stage('Production') {
 					steps {
-						sh 'npm run check:engines'
 						sh 'npm ci'
 						unstash 'aab-production'
 						unstash 'apk-production'

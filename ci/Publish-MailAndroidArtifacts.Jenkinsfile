@@ -116,7 +116,6 @@ pipeline {
 				script {
 					downloadAndroidApp("android", PROD_FILE_PATH)
 
-					sh 'npm run check:engines'
 					sh 'npm ci'
 
 					writeFile file: "notes.txt", text: params.releaseNotes

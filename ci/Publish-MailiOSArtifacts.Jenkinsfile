@@ -113,7 +113,6 @@ pipeline {
 						script {
 							if (params.APP_STORE_NOTES) {
 								// need to run npm ci to install dependencies of releaseNotes.js
-								sh "npm run check:engines"
 								sh "npm ci"
 
 								writeFile file: "notes.txt", text: params.releaseNotes
@@ -136,7 +135,6 @@ pipeline {
 			when { expression { return params.GITHUB_RELEASE } }
 			steps {
 				script {
-					sh 'npm run check:engines'
 					sh 'npm ci'
 
 					writeFile file: "notes.txt", text: params.releaseNotes

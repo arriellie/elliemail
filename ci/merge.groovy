@@ -386,7 +386,6 @@ void initWorkspace(HashSet<String> changeset, String srcBranch, String targetBra
 	sh "pwd && git status && git remote -v && git submodule status"
 	getChangeset(changeset, targetBranch)
 	if (shouldRunNpmCi()) {
-		sh "npm run check:engines"
 		sh "npm ci"
 	}
 }

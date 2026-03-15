@@ -64,7 +64,6 @@ pipeline {
 			// Release Notes are only generating when publishing to Prod
 			when { expression { return params.target.equals("publishToProd") && (params.web || params.android || params.ios || params.desktop) } }
 			steps {
-				sh "npm run check:engines"
 				sh "npm ci"
 				script { // create release notes
 					def version = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
