@@ -10,6 +10,7 @@
 	"scripts": {
 		"start": "./start-desktop.sh",
 		"build-packages": "echo '>>>> You no longer need to execute this <<<<<'",
+		"check:engines": "node buildSrc/check-engines.js",
 		"test-ci": "cd test && node test --ci",
 		"test": "cd test && node --enable-source-maps test",
 		"mail:types": "tsc --build --incremental true tsconfig.json",
