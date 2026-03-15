@@ -19,6 +19,9 @@ runs:
       with:
         path: ${{ env.node_sqlcipher_path }}
         key: ${{ env.node_sqlcipher_path }}
+    - name: check engines
+      shell: bash
+      run: npm run check:engines
     - name: install packages
       shell: bash
       run: npm ci
