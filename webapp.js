@@ -12,9 +12,9 @@
 import { Argument, Option, program } from "commander"
 import fs from "fs-extra"
 import path, { dirname } from "node:path"
-import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import { fileURLToPath } from "node:url"
+import { runEngineCheck } from "./buildSrc/runEngineCheck.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -45,6 +45,8 @@ await program
 		options.stage = stage ?? "release"
 		options.host = host
 
+		runEngineCheck()
+
 		await doBuild(options)
 	})
 	.parseAsync(process.argv)
@@ -59,6 +61,7 @@ async function doBuild(options) {
 			console.warn("Minification is disabled")
 		}
 
+		const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
 		await buildWebapp({
 			version,
 			stage: options.stage,

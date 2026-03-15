@@ -9,12 +9,11 @@
  *  'ANDROID_HOME'
  */
 import { Argument, Option, program } from "commander"
-import { runDevBuild } from "./buildSrc/DevBuild.js"
 import { prepareMobileBuild } from "./buildSrc/prepareMobileBuild.js"
-import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import path from "node:path"
 import { $, cd } from "zx"
+import { runEngineCheck } from "./buildSrc/runEngineCheck.js"
 
 const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "\n")
 
@@ -51,6 +50,8 @@ await program
 			program.outputHelp()
 			process.exit(1)
 		}
+
+		runEngineCheck()
 
 		const apk = await buildAndroid({
 			stage: stage ?? "prod",
@@ -139,6 +140,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 
 	if (!existing) {
 		if (webClient === "make") {
+			const { runDevBuild } = await import("./buildSrc/DevBuild.js")
 			await runDevBuild({
 				stage,
 				host,
@@ -151,6 +153,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 			})
 		} else {
 			const version = await getTutanotaAppVersion()
+			const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
 			await buildWebapp({
 				version,
 				stage,
