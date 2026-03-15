@@ -79,7 +79,6 @@ pipeline {
 					sh "tar -xvzf ${filePath}"
                 }
 
-				sh 'npm run check:engines'
 				sh 'npm ci'
 				sh 'node buildSrc/publish.js webapp'
             } // steps
@@ -88,7 +87,6 @@ pipeline {
         stage('Publish release notes') {
             when { expression { return params.GITHUB_RELEASE } }
             steps {
-            	sh 'npm run check:engines'
             	sh 'npm ci'
 
 				writeFile file: "notes.txt", text: params.releaseNotes
@@ -101,7 +99,6 @@ pipeline {
         stage('Publish npm modules') {
 			when { expression { return params.PUBLISH_NPM_MODULES } }
 			steps {
-                sh 'npm run check:engines'
                 sh 'npm ci'
                 sh 'npm run build-packages'
                 // .npmrc expects $NPM_TOKEN

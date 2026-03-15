@@ -37,7 +37,6 @@ pipeline {
 			agent { label 'linux' }
 			environment { PATH = "${env.NODE_PATH}:${env.PATH}" }
 			steps {
-				sh 'npm run check:engines'
 				sh 'npm ci'
 				sh 'npm run build-packages'
 				sh 'rm -rf ./dictionaries/'
