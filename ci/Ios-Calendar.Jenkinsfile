@@ -147,6 +147,7 @@ void buildWebapp(String stage) {
 	script {
 		sh "pwd"
 		sh "echo $PATH"
+    	sh "npm run check:engines"
     	sh "npm ci"
     	sh 'npm run build-packages'
     	sh "node --max-old-space-size=8192 webapp ${stage} --app calendar"

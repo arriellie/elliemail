@@ -13,6 +13,7 @@
 	},
 	"scripts": {
 		"build-packages": "node buildSrc/buildPackages.js all",
+		"check:engines": "node buildSrc/check-engines.js",
 		"build-runtime-packages": "node buildSrc/buildPackages.js runtime",
 		"start": "./start-desktop.sh",
 		"test-ci": "npm run --if-present test -ws && cd test && node test",

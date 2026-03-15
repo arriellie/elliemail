@@ -83,6 +83,7 @@ pipeline {
 
                         sh 'node -v'
                         sh 'npm -v'
+                        sh 'npm run check:engines'
                         sh 'npm ci'
 
                         sh 'node buildSrc/publish.js desktop'
@@ -128,6 +129,7 @@ pipeline {
                                 error("Unable to find file ${desktopLinux}")
                             }
 
+                            sh 'npm run check:engines'
                             sh 'npm ci'
 
                             writeFile file: "notes.txt", text: params.releaseNotes

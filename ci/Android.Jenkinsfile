@@ -74,6 +74,7 @@ pipeline {
 					}
 					steps {
 						echo "Building STAGING ${VERSION}"
+						sh 'npm run check:engines'
 						sh 'npm ci'
 						sh 'npm run build-packages'
 						withCredentials([
@@ -92,6 +93,7 @@ pipeline {
 					}
 					steps {
 						echo "Building PROD ${VERSION}"
+						sh 'npm run check:engines'
 						sh 'npm ci'
 						sh 'npm run build-packages'
 						withCredentials([
