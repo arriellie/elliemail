@@ -66,15 +66,40 @@ function matchesRange(actual, range) {
 	})
 }
 
+function matchesPinnedMinorRange(actual, range) {
+	const trimmedRange = range.trim()
+	const singleLowerBound = trimmedRange.match(/^>=\s*v?(\d+\.\d+\.\d+)$/)
+	if (!singleLowerBound) {
+		return null
+	}
+
+	const actualParsed = parseVersion(actual)
+	const expected = parseVersion(singleLowerBound[1])
+	const hasSameMajorMinor = actualParsed[0] === expected[0] && actualParsed[1] === expected[1]
+
+	if (!hasSameMajorMinor) {
+		return false
+	}
+
+	return compareVersions(actualParsed, expected) >= 0
+}
+
 function checkEngine(name, expectedRange, actualVersion) {
 	if (!expectedRange) {
 		return
 	}
 
-	if (!matchesRange(actualVersion, expectedRange)) {
+	const strictNodeMatch = name === "node" ? matchesPinnedMinorRange(actualVersion, expectedRange) : null
+	const isCompatible = strictNodeMatch ?? matchesRange(actualVersion, expectedRange)
+
+	if (!isCompatible) {
 		console.error(`\n❌ ${name} version is incompatible.`)
 		console.error(`Required (${name}): ${expectedRange}`)
 		console.error(`Current  (${name}): ${actualVersion.replace(/^v/, "")}`)
+		if (name === "node" && strictNodeMatch !== null) {
+			const [major, minor] = parseVersion(expectedRange.replace(/^>=\s*v?/, ""))
+			console.error(`Expected a ${major}.${minor}.x runtime (same minor as the baseline).`)
+		}
 		process.exitCode = 1
 	}
 }
