@@ -10,7 +10,7 @@ import { createHtml } from "./buildSrc/createHtml.js"
 import { Argument, Option, program } from "commander"
 import { domainConfigs } from "./buildSrc/DomainConfigs.js"
 import { BlockList } from "node:net"
-import { runEngineCheck } from "./buildSrc/runEngineCheck.js"
+import { runPreflightCheck } from "./buildSrc/runPreflightCheck.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const tutaTestUrl = new URL("https://app.test.tuta.com")
@@ -41,7 +41,7 @@ await program
 		opts.stage = stage ?? "release"
 		opts.host = host
 
-		runEngineCheck()
+		runPreflightCheck()
 
 		if (opts.customDesktopRelease) {
 			console.log(`Custom desktop release - setting platform to ${process.platform}`)

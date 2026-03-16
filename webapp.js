@@ -14,7 +14,7 @@ import fs from "fs-extra"
 import path, { dirname } from "node:path"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import { fileURLToPath } from "node:url"
-import { runEngineCheck } from "./buildSrc/runEngineCheck.js"
+import { runPreflightCheck } from "./buildSrc/runPreflightCheck.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -45,7 +45,7 @@ await program
 		options.stage = stage ?? "release"
 		options.host = host
 
-		runEngineCheck()
+		runPreflightCheck()
 
 		await doBuild(options)
 	})

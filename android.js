@@ -15,7 +15,7 @@ import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import path from "node:path"
 import { $ } from "zx"
 import fs from "node:fs/promises"
-import { runEngineCheck } from "./buildSrc/runEngineCheck.js"
+import { runPreflightCheck } from "./buildSrc/runPreflightCheck.js"
 
 // chalk is in scope because of zx
 const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "\n")
@@ -56,7 +56,7 @@ await program
 			process.exit(1)
 		}
 
-		runEngineCheck()
+		runPreflightCheck("android")
 
 		const apk = await buildAndroid({
 			stage: stage ?? "prod",

@@ -4,3 +4,7 @@ import { resolve } from "node:path"
 export function runEngineCheck() {
 	execFileSync(process.execPath, [resolve(import.meta.dirname, "check-engines.js")], { stdio: "inherit" })
 }
+
+export function runPreflightCheck(...args) {
+	execFileSync(process.execPath, [resolve(import.meta.dirname, "preflight.js"), ...args], { stdio: "inherit" })
+}

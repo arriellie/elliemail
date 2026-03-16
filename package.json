@@ -11,16 +11,17 @@
 		"start": "./start-desktop.sh",
 		"build-packages": "echo '>>>> You no longer need to execute this <<<<<'",
 		"check:engines": "node buildSrc/check-engines.js",
-		"prestart": "node buildSrc/check-engines.js",
-		"pretest-ci": "node buildSrc/check-engines.js",
+		"check:preflight": "node buildSrc/preflight.js",
+		"prestart": "npm run check:preflight",
+		"pretest-ci": "npm run check:preflight",
 		"test-ci": "cd test && node test --ci",
-		"pretest": "node buildSrc/check-engines.js",
+		"pretest": "npm run check:preflight",
 		"test": "cd test && node --enable-source-maps test",
 		"mail:types": "tsc --build --incremental true tsconfig.json",
 		"calendar:types": "tsc --build --incremental true tsconfig-calendar-app.json",
 		"drive:types": "tsc --build --incremental true tsconfig-drive-app.json",
 		"test:types": "tsc --build --incremental true test/tsconfig.json",
-		"preinstall": "node buildSrc/preinstall.js",
+		"preinstall": "node buildSrc/preflight.js && node buildSrc/preinstall.js",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
 		"generate-ipc": "tsc --build buildSrc/licc/tsconfig.licc.json && node build/licc/cli.js ipc-schema && npm run style:fix",
@@ -112,7 +113,7 @@
 		"./src/licc"
 	],
 	"engines": {
-		"npm": ">=10.0.0",
+		"npm": ">=10.0.0 <11.0.0",
 		"node": ">=22.16.0"
 	}
 }
