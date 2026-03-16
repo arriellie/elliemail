@@ -13,7 +13,7 @@ import { prepareMobileBuild } from "./buildSrc/prepareMobileBuild.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import path from "node:path"
 import { $, cd } from "zx"
-import { runEngineCheck } from "./buildSrc/runEngineCheck.js"
+import { runPreflightCheck } from "./buildSrc/runPreflightCheck.js"
 
 const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "\n")
 
@@ -51,7 +51,7 @@ await program
 			process.exit(1)
 		}
 
-		runEngineCheck()
+		runPreflightCheck("android")
 
 		const apk = await buildAndroid({
 			stage: stage ?? "prod",

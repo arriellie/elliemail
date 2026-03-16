@@ -1,7 +1,7 @@
 import { Argument, Option, program } from "commander"
 import { spawn } from "node:child_process"
 import { chalk } from "zx"
-import { runEngineCheck } from "./buildSrc/runEngineCheck.js"
+import { runEngineCheck } from "./buildSrc/runPreflightCheck.js"
 
 await program
 	.usage("[options] [test|prod|local|host <url>]")
