@@ -190,6 +190,19 @@ export interface ExposedCacheStorage {
 	 * we must maintain the integrity of our list ranges.
 	 * */
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+
+	/**
+	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.
+	 * deleting an entire range is helpful, when the instances should be explicitly reloaded the
+	 * next time a loadRange call is executed, but keeps already downloaded instances in cache,
+	 * when e.g. querying them explicitly with loadMultiple.
+	 *
+	 * This interface is exposed mainly to allow deleting the range of MailSetEntries for a
+	 * respective targetFolder when importing mails. This makes sure, that we keep already downloaded
+	 * MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
+	 *
+	 */
+	deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -259,6 +272,18 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getLastBatchIdForGroup(groupId: Id): Promise<Id | null>
 
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+
+	/**
+	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.
+	 * deleting an entire range is helpful, when the instances should be explicitly reloaded the
+	 * next time a loadRange call is executed, but keeps already downloaded instances in cache,
+	 * when e.g. querying them explicitly with loadMultiple.
+	 *
+	 * This interface is exposed mainly to allow deleting the range of MailSetEntries for a
+	 * respective targetFolder when importing mails. This makes sure, that we keep already downloaded
+	 * MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
+	 */
+	deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void>
 
 	putLastUpdateTime(value: number): Promise<void>
 
@@ -891,31 +916,34 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
 		}
 
-		try {
-			if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
-				if (update.patches) {
-					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
-					if (patchAppliedInstance == null) {
-						return await this.loadAndStoreInstanceFromUpdate(update)
-					}
-				} else {
-					const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
-					if (cached != null) {
+		const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
+		// if the entity is not in cache we don't want to patch or re-download it
+		if (cached) {
+			try {
+				if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
+					if (update.patches) {
+						const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
+						if (patchAppliedInstance == null) {
+							return await this.loadAndStoreInstanceFromUpdate(update)
+						}
+					} else {
 						return await this.loadAndStoreInstanceFromUpdate(update)
 					}
 				}
+			} catch (e) {
+				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexistent instance around.
+				// Even for list elements this should be safe as the instance is not there anymore.
+				if (isExpectedErrorForSynchronization(e)) {
+					console.log(`instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache`)
+					await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
+					return null
+				} else {
+					throw e
+				}
 			}
 			return update
-		} catch (e) {
-			// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexistent instance around.
-			// Even for list elements this should be safe as the instance is not there anymore.
-			if (isExpectedErrorForSynchronization(e)) {
-				console.log(`instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache`)
-				await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
-				return null
-			} else {
-				throw e
-			}
+		} else {
+			return null
 		}
 	}
 
