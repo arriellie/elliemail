@@ -12,10 +12,11 @@
 		"./buildSrc/*": "./buildSrc/*"
 	},
 	"scripts": {
-		"prebuild-packages": "node buildSrc/check-engines.js",
+		"prebuild-packages": "npm run check:preflight",
 		"build-packages": "node buildSrc/buildPackages.js all",
-		"prebuild-runtime-packages": "node buildSrc/check-engines.js",
+		"prebuild-runtime-packages": "npm run check:preflight",
 		"check:engines": "node buildSrc/check-engines.js",
+		"check:preflight": "node buildSrc/preflight.js",
 		"build-runtime-packages": "node buildSrc/buildPackages.js runtime",
 		"prestart": "node buildSrc/check-engines.js",
 		"start": "./start-desktop.sh",
@@ -27,7 +28,7 @@
 		"test:app": "cd test && node --enable-source-maps test",
 		"types": "tsc --incremental true --noEmit true",
 		"prebuild": "node buildSrc/prebuild.js",
-		"preinstall": "node buildSrc/check-engines.js && (git config core.hooksPath githooks || true)",
+		"preinstall": "node buildSrc/preflight.js && (git config core.hooksPath githooks || true)",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
 		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema && npm run style:fix",
