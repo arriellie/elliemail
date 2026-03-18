@@ -4,8 +4,8 @@ import { tutanotaTypeRefs } from "@tutao/typerefs"
 import { elementIdPart, getElementId, LEGACY_BCC_RECIPIENTS_ID, LEGACY_BODY_ID, LEGACY_CC_RECIPIENTS_ID, LEGACY_TO_RECIPIENTS_ID } from "@tutao/typerefs"
 import { Metadata } from "../../../common/api/worker/search/IndexTables"
 import { IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
-import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
-import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
+import { _createNewIndexUpdate, getPerformanceTimestamp, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
+import { getDisplayedSender, getSearchableMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ClientTypeModelResolver } from "@tutao/typerefs"
 import { AttributeModel } from "@tutao/typerefs"
@@ -122,7 +122,7 @@ export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
 			{
 				// allows old index entries (pre-maildetails) to be used with new clients.
 				id: LEGACY_BODY_ID,
-				value: () => htmlToText(getMailBodyText(mailDetails.body)),
+				value: () => getSearchableMailBodyText(mailDetails.body),
 			},
 			{
 				id: assertNotNull(AttributeModel.getAttributeId(MailModel, "attachments")),

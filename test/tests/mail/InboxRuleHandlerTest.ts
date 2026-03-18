@@ -106,6 +106,59 @@ o.spec("InboxRuleHandlerTest", function () {
 				o(_equalTupels(rule.targetFolder, ["ruleTarget", "ruleTarget"])).equals(true)
 			}
 		})
+
+		o("matches subject rules case-insensitively", async function () {
+			const rules: tutanotaTypeRefs.InboxRule[] = [_createRule("invoice ready", InboxRuleType.SUBJECT_CONTAINS, ["ruleTarget", "ruleTarget"])]
+
+			const mail = _createMailWithDifferentEnvelopeSender()
+			mail.subject = "Invoice Ready"
+
+			const rule = await _findMatchingRule(this.mailFacade, mail, rules)
+			o(rule).notEquals(null)
+		})
+
+		o("matches body rules against normalized plaintext body content", async function () {
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const rules: tutanotaTypeRefs.InboxRule[] = [_createRule("invoice 123", InboxRuleType.MAIL_BODY_CONTAINS, ["ruleTarget", "ruleTarget"])]
+			const mailDetails = _createMailDetails("<div>Invoice <strong>123</strong></div>")
+
+			const rule = await _findMatchingRule(this.mailFacade, mail, rules, mailDetails)
+			o(rule).notEquals(null)
+		})
+
+		o("matches body rules case-insensitively", async function () {
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const rules: tutanotaTypeRefs.InboxRule[] = [_createRule("invoice 123", InboxRuleType.MAIL_BODY_CONTAINS, ["ruleTarget", "ruleTarget"])]
+			const mailDetails = _createMailDetails("INVOICE 123")
+
+			const rule = await _findMatchingRule(this.mailFacade, mail, rules, mailDetails)
+			o(rule).notEquals(null)
+		})
+
+		o("matches body regex rules case-insensitively without requiring the i flag", async function () {
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const rules: tutanotaTypeRefs.InboxRule[] = [_createRule("/invoice\\s+123/", InboxRuleType.MAIL_BODY_CONTAINS, ["ruleTarget", "ruleTarget"])]
+			const mailDetails = _createMailDetails("INVOICE 123")
+
+			const rule = await _findMatchingRule(this.mailFacade, mail, rules, mailDetails)
+			o(rule).notEquals(null)
+		})
+
+		o("keeps first-match-wins ordering when both body and subject rules match", async function () {
+			const mail = _createMailWithDifferentEnvelopeSender()
+			mail.subject = "matching subject"
+			const rules: tutanotaTypeRefs.InboxRule[] = [
+				_createRule("invoice 123", InboxRuleType.MAIL_BODY_CONTAINS, ["ruleTarget", "ruleTarget"]),
+				_createRule("matching subject", InboxRuleType.SUBJECT_CONTAINS, ["laterTarget", "laterTarget"]),
+			]
+			const mailDetails = _createMailDetails("invoice 123")
+
+			const rule = await _findMatchingRule(this.mailFacade, mail, rules, mailDetails)
+			o(rule).notEquals(null)
+			if (rule) {
+				o(_equalTupels(rule.targetFolder, ["ruleTarget", "ruleTarget"])).equals(true)
+			}
+		})
 	})
 })
 
@@ -116,6 +169,11 @@ function _createMailWithDifferentEnvelopeSender(): tutanotaTypeRefs.Mail {
 	mail.sender = sender
 	mail.differentEnvelopeSender = "differentenvelopsender@something.com"
 	return mail
+}
+
+function _createMailDetails(bodyText: string): tutanotaTypeRefs.MailDetails {
+	const body = createTestEntity(tutanotaTypeRefs.BodyTypeRef, { text: bodyText })
+	return createTestEntity(tutanotaTypeRefs.MailDetailsTypeRef, { body })
 }
 
 function _createRule(value: string, type?: string, targetFolder?: IdTuple, excludeFromSpamFilter = false): tutanotaTypeRefs.InboxRule {

@@ -64,7 +64,9 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					value: inboxRuleValue(),
 					oninput: inboxRuleValue,
 					helpLabel: () =>
-						inboxRuleType() !== InboxRuleType.SUBJECT_CONTAINS && inboxRuleType() !== InboxRuleType.MAIL_HEADER_CONTAINS
+						inboxRuleType() !== InboxRuleType.SUBJECT_CONTAINS &&
+						inboxRuleType() !== InboxRuleType.MAIL_HEADER_CONTAINS &&
+						inboxRuleType() !== InboxRuleType.MAIL_BODY_CONTAINS
 							? lang.get("emailSenderPlaceholder_label")
 							: lang.get("emptyString_msg"),
 				}),
@@ -156,6 +158,7 @@ function validateInboxRuleInput(type: string, value: string, ruleId: Id | undefi
 	} else if (
 		type !== InboxRuleType.SUBJECT_CONTAINS &&
 		type !== InboxRuleType.MAIL_HEADER_CONTAINS &&
+		type !== InboxRuleType.MAIL_BODY_CONTAINS &&
 		!isRegularExpression(currentCleanedValue) &&
 		!isDomainName(currentCleanedValue) &&
 		!isMailAddress(currentCleanedValue, false)
@@ -173,7 +176,7 @@ function validateInboxRuleInput(type: string, value: string, ruleId: Id | undefi
 }
 
 function getCleanedValue(type: string, value: string) {
-	if (type === InboxRuleType.SUBJECT_CONTAINS || type === InboxRuleType.MAIL_HEADER_CONTAINS) {
+	if (type === InboxRuleType.SUBJECT_CONTAINS || type === InboxRuleType.MAIL_HEADER_CONTAINS || type === InboxRuleType.MAIL_BODY_CONTAINS) {
 		return value
 	} else {
 		return value.trim().toLowerCase()

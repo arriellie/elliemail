@@ -5,8 +5,7 @@ import { NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/utils"
 import { elementIdPart, ListElementEntity, listIdPart, tutanotaTypeRefs } from "@tutao/typerefs"
-import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
-import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
+import { getSearchableMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
 import { GroupType } from "@tutao/app-env"
 
@@ -146,7 +145,7 @@ export class OfflineStoragePersistence {
                 ${serializeMailAddresses(recipients.ccRecipients)},
                 ${serializeMailAddresses(recipients.bccRecipients)},
                 ${serializeMailAddresses([mail.sender])},
-                ${htmlToText(getMailBodyText(body))},
+                ${getSearchableMailBodyText(body)},
                 ${attachments.map((f) => f.name).join(" ")}
                 )`
 			await this.sqlCipherFacade.run(query, params)

@@ -73,21 +73,12 @@ export class ProcessInboxHandler {
 			return sourceFolder
 		}
 
-		let instanceSessionKeys: sysTypeRefs.InstanceSessionKey[] = []
-		// resolve sessionKeys for mail and their corresponding files if bucket key exists, and we are the
-		// leader client, i.e. isLeaderClient == true
-		// we resolveWithBucketKey before predicting spam to have an encryptionAuthStatus on the mail instance
-		if (isLeaderClient && mail.bucketKey) {
-			const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
-			instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
-		}
-
-		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+		const { instanceSessionKeys, mailDetails } = await this.prepareMailForRuleEvaluation(mail, isLeaderClient)
 
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
 		let moveToFolder: tutanotaTypeRefs.MailSet = sourceFolder
 
-		const matchingInboxRule = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder)
+		const matchingInboxRule = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder, false, mailDetails)
 		if (!matchingInboxRule || !matchingInboxRule.excludeFromSpamFilter) {
 			// In this case there is no matching inbox rule or it is not excluded from the spam, so we to use the spam classifier
 
@@ -151,15 +142,33 @@ export class ProcessInboxHandler {
 		if (mail.processNeeded) {
 			return sourceFolder
 		}
+		const { mailDetails } = await this.prepareMailForRuleEvaluation(mail, false)
 		let moveToFolder: tutanotaTypeRefs.MailSet = sourceFolder
 
 		// process excluded rules first and then regular ones.
-		const result = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder, true)
+		const result = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder, true, mailDetails)
 		if (result) {
 			const { targetFolder, processInboxDatum: _ } = result
 			moveToFolder = targetFolder
 		}
 
 		return moveToFolder
+	}
+
+	private async prepareMailForRuleEvaluation(
+		mail: tutanotaTypeRefs.Mail,
+		collectInstanceSessionKeys: boolean,
+	): Promise<{ instanceSessionKeys: sysTypeRefs.InstanceSessionKey[]; mailDetails: tutanotaTypeRefs.MailDetails }> {
+		let instanceSessionKeys: sysTypeRefs.InstanceSessionKey[] = []
+		const shouldResolveBucketKey = mail.bucketKey != null && (collectInstanceSessionKeys || mail._ownerEncSessionKey == null)
+		if (shouldResolveBucketKey) {
+			const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
+			if (collectInstanceSessionKeys) {
+				instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
+			}
+		}
+
+		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+		return { instanceSessionKeys, mailDetails }
 	}
 }
