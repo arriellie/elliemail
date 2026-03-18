@@ -1,6 +1,6 @@
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler, InboxRulesApplicationType } from "./InboxRuleHandler"
-import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailDetails, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertNotNull, isEmpty, Nullable, throttle } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
@@ -77,22 +77,13 @@ export class ProcessInboxHandler {
 			return sourceFolder
 		}
 
-		let instanceSessionKeys: InstanceSessionKey[] = []
-		// resolve sessionKeys for mail and their corresponding files if bucket key exists, and we are the
-		// leader client, i.e. isLeaderClient == true
-		// we resolveWithBucketKey before predicting spam to have an encryptionAuthStatus on the mail instance
-		if (isLeaderClient && mail.bucketKey) {
-			const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
-			instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
-		}
-
-		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+		const { instanceSessionKeys, mailDetails } = await this.prepareMailForRuleEvaluation(mail, isLeaderClient)
 
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
 		let moveToFolder: MailSet = sourceFolder
 
 		// We process rules which are excluded from spam list first and if none apply then we run spam prediction.
-		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder)
+		const result = await this.inboxRuleHandler()?.findAndApplyRulesExcludedFromSpamFilter(mailboxDetail, mail, sourceFolder, false, mailDetails)
 		if (result) {
 			const { targetFolder, processInboxDatum } = result
 			finalProcessInboxDatum = processInboxDatum
@@ -106,7 +97,7 @@ export class ProcessInboxHandler {
 
 			// apply regular inbox rules only if the mail is classified as ham by the spam classifier
 			if (moveToFolder.folderType === MailSetKind.INBOX) {
-				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, moveToFolder)
+				const result = await this.inboxRuleHandler()?.findAndApplyRulesNotExcludedFromSpamFilter(mailboxDetail, mail, moveToFolder, false, mailDetails)
 				if (result) {
 					const { targetFolder, processInboxDatum } = result
 					finalProcessInboxDatum = processInboxDatum
@@ -154,15 +145,41 @@ export class ProcessInboxHandler {
 		if (mail.processNeeded) {
 			return sourceFolder
 		}
+
+		const { mailDetails } = await this.prepareMailForRuleEvaluation(mail, false)
 		let moveToFolder: MailSet = sourceFolder
 
 		// process excluded rules first and then regular ones.
-		const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, sourceFolder, InboxRulesApplicationType.All, true)
+		const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(
+			mailboxDetail,
+			mail,
+			sourceFolder,
+			InboxRulesApplicationType.All,
+			true,
+			mailDetails,
+		)
 		if (result) {
 			const { targetFolder, processInboxDatum: _ } = result
 			moveToFolder = targetFolder
 		}
 
 		return moveToFolder
+	}
+
+	private async prepareMailForRuleEvaluation(
+		mail: Mail,
+		collectInstanceSessionKeys: boolean,
+	): Promise<{ instanceSessionKeys: InstanceSessionKey[]; mailDetails: MailDetails }> {
+		let instanceSessionKeys: InstanceSessionKey[] = []
+		const shouldResolveBucketKey = mail.bucketKey != null && (collectInstanceSessionKeys || mail._ownerEncSessionKey == null)
+		if (shouldResolveBucketKey) {
+			const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
+			if (collectInstanceSessionKeys) {
+				instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
+			}
+		}
+
+		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+		return { instanceSessionKeys, mailDetails }
 	}
 }

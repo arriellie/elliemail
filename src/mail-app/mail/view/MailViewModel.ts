@@ -662,6 +662,12 @@ export class MailViewModel {
 		const mailboxDetails = await this.getMailboxDetails()
 		const targetFolderIdToFolderMailMap = new Map<Id, { folder: MailSet; mails: Mail[] }>()
 
+		await Promise.all(
+			actionableMails
+				.filter((mail) => mail.bucketKey != null && mail._ownerEncSessionKey == null)
+				.map((mail) => mailLocator.cryptoFacade.resolveWithBucketKey(mail)),
+		)
+
 		// preload mailDetails, to cache in one request
 		await mailLocator.bulkMailLoader.loadMailDetails(actionableMails)
 
