@@ -6,8 +6,7 @@ import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
-import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
-import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
+import { getSearchableMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
 
@@ -147,7 +146,7 @@ export class OfflineStoragePersistence {
                 ${serializeMailAddresses(recipients.ccRecipients)},
                 ${serializeMailAddresses(recipients.bccRecipients)},
                 ${serializeMailAddresses([mail.sender])},
-                ${htmlToText(getMailBodyText(body))},
+                ${getSearchableMailBodyText(body)},
                 ${attachments.map((f) => f.name).join(" ")}
                 )`
 			await this.sqlCipherFacade.run(query, params)
