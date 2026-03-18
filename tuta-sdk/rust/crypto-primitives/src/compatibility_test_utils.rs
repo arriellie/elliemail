@@ -194,18 +194,37 @@ pub struct CompressionTestData {
 pub struct AeadTest {
 	#[serde(with = "Base64")]
 	pub plain_text_base64: Vec<u8>,
-	#[serde(with = "const_hex")]
-	pub seed: Vec<u8>,
 	#[serde(with = "Base64")]
 	pub cipher_text_base64: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub plaintext_key: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub encryption_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub authentication_key: Vec<u8>,
 	#[serde(with = "Base64")]
 	pub encrypted_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub seed: Vec<u8>,
 	#[serde(with = "Base64")]
 	pub associated_data: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Blake3Test {
+	#[serde(with = "const_hex")]
+	pub key_hex: Vec<u8>,
+	pub context: String,
+	pub length_in_bytes: usize,
+	#[serde(with = "const_hex")]
+	pub kdf_output_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub data_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub tag_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub digest_hex: Vec<u8>,
 }
 
 #[derive(Deserialize)]
@@ -224,6 +243,7 @@ pub struct CompatibilityTestData {
 	pub pqcrypt_encryption_tests: Vec<PQCryptEncryptionTest>,
 	pub compression_tests: Vec<CompressionTestData>,
 	pub aead_tests: Vec<AeadTest>,
+	pub blake3_tests: Vec<Blake3Test>,
 }
 
 struct Base64;

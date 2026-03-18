@@ -18,6 +18,8 @@ import "./TotpVerifierTest.js"
 import "./X25519Test.js"
 import "./KyberTest.js"
 import "./HmacTest.js"
+import "./Blake3Test.js"
+import "./AeadFacadeTest.js"
 import { bootstrapTests } from "./bootstrap.js"
 
 await bootstrapTests()

@@ -1,5 +1,5 @@
 // DO NOT EDIT: automatically generated
-// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
+// Please edit translations via POEditor: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"code": "de",
 	"keys": {
@@ -183,6 +183,7 @@ export default {
 		"businessUse_action": "Geschäftliche Nutzung",
 		"buy_action": "Kaufen",
 		"buyGiftCard_label": "Gutschein kaufen",
+		"buyGiftcardWhileCampaignActive_msg": "Gutscheine sind nicht mit Rabattaktionen kombinierbar.",
 		"by_label": "von",
 		"calendar_label": "Kalender",
 		"calendarAlarmsTooBigError_msg": "Neue Erinnerungen konnten nicht eingerichtet werden. Der Grund ist, dass zu viele Geräte mit aktivierten Benachrichtigungen verknüpft sind. Bitte gehe zu Einstellungen -> Benachrichtigungen, um alte Geräte aus der Benachrichtigungsliste zu löschen.",
@@ -578,6 +579,7 @@ export default {
 		"draftSaved_msg": "Entwurf gespeichert.",
 		"dragAndDrop_action": "E-Mails per Drag & Drop ins Dateisystem oder in andere Anwendungen ziehen",
 		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "Drag & Drop ist für Termine mit benutzerdefinierten Wiederholungsregeln nicht verfügbar.",
+		"driveBetaWarning_msg": "Während der Beta-Phase von Drive kann es ohne Vorwarnung zu Datenverlusten kommen.",
 		"driveHome_label": "Start",
 		"driveTrash_label": "Papierkorb",
 		"driveView_action": "Drive",
@@ -1816,6 +1818,7 @@ export default {
 		"setDnsRecords_msg": "Bitte erstelle die folgenden DNS-Einträge:",
 		"setPrimaryMailAddress_label": "Als primäre Adresse festlegen",
 		"setSenderName_action": "Absendername festlegen",
+		"settingNotApplicableInIos_msg": "Diese Einstellung betrifft die iOS-App nicht. Bitte logge dich in der Web-App ein, um sie zu ändern.",
 		"settings_label": "Einstellungen",
 		"settingsForDevice_label": "Einstellungen für dieses Gerät",
 		"settingsView_action": "Zur Einstellungs-Ansicht wechseln",
@@ -1925,6 +1928,7 @@ export default {
 		"subscriptionSettings_label": "Abonnement-Einstellungen",
 		"sunday_label": "Sonntag",
 		"supportBackLostRequest_msg": "Möchtest du wirklich zurückgehen? Deine Anfrage wird nicht gespeichert.",
+		"supportCloseLostRequest_msg": "Möchtest du den Dialog wirklich schließen? Deine Anfrage wird nicht gespeichert.",
 		"supportDownloadMailApp_msg": "Sobald der Support geantwortet hat, kannst du die Antwort in Tuta Mail mit deinen Tuta-Kalender-Anmeldedaten abrufen.",
 		"supportForm_msg": "Bitte gib uns mehr Details (englisch oder deutsch), damit wir dir besser helfen können.",
 		"supportForm_title": "Gehen wir der Sache auf den Grund",

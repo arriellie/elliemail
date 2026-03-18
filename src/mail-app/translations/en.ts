@@ -1,5 +1,5 @@
 // DO NOT EDIT: automatically generated
-// Please edit translations via Phrase: https://tuta.com/blog/tutanota-translation-project
+// Please edit translations via POEditor: https://tuta.com/blog/tutanota-translation-project
 export default {
 	"code": "en",
 	"keys": {
@@ -183,6 +183,7 @@ export default {
 		"businessUse_action": "Business use",
 		"buy_action": "Buy",
 		"buyGiftCard_label": "Buy a gift card",
+		"buyGiftcardWhileCampaignActive_msg": "Giftcards are not usable with discount offers.",
 		"by_label": "by",
 		"calendar_label": "Calendar",
 		"calendarAlarmsTooBigError_msg": "New reminders could not be set up. This is caused by having too many devices with notifications enabled. Please go to Settings -> Notifications to delete old devices from the notification list.",
@@ -578,6 +579,7 @@ export default {
 		"draftSaved_msg": "Draft saved.",
 		"dragAndDrop_action": "Drag selected mails to the file system or other applications.",
 		"dragAndDropNotAllowedForAdvancedRecurrences_msg": "Drag & drop isn't available for events containing Advanced Repeat Rules",
+		"driveBetaWarning_msg": "While Drive is in beta data loss without prior warning might be possible.",
 		"driveHome_label": "Home",
 		"driveTrash_label": "Trash",
 		"driveView_action": "Drive",
@@ -1816,6 +1818,7 @@ export default {
 		"setDnsRecords_msg": "Please set the following DNS records:",
 		"setPrimaryMailAddress_label": "Set as primary address",
 		"setSenderName_action": "Set sender name",
+		"settingNotApplicableInIos_msg": "This setting does not apply to the iOS app and cannot be changed here. Please log into the web app to change it.",
 		"settings_label": "Settings",
 		"settingsForDevice_label": "Settings for this device",
 		"settingsView_action": "Switch to the settings view",
@@ -1925,6 +1928,7 @@ export default {
 		"subscriptionSettings_label": "Subscription Settings",
 		"sunday_label": "Sunday",
 		"supportBackLostRequest_msg": "Are you sure you want to go back? Your request will be lost.",
+		"supportCloseLostRequest_msg": "Are you sure you want to close the dialog? Your request will be lost.",
 		"supportDownloadMailApp_msg": "You can access the response once support has replied in Tuta Mail using your Tuta Calendar credentials.",
 		"supportForm_msg": "Please provide more details (English or German) so we can assist you better.",
 		"supportForm_title": "Let's get to the bottom of this",

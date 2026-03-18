@@ -1,10 +1,11 @@
-use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError};
+use crate::crypto::key::{AsymmetricKeyPair, KeyLoadError};
 use crate::crypto::kyber::{KyberKeyPair, KyberPrivateKey, KyberPublicKey};
 use crate::crypto::rsa::{RSAKeyPair, RSAPrivateKey, RSAPublicKey, RSAX25519KeyPair};
 use crate::crypto::tuta_crypt::TutaCryptKeyPairs;
 use crate::crypto::x25519::{X25519KeyPair, X25519PrivateKey, X25519PublicKey};
 use crate::entities::generated::sys::KeyPair;
 use crate::ApiCallError;
+use crypto_primitives::key::GenericAesKey;
 use zeroize::Zeroizing;
 
 pub fn decrypt_key_pair(
@@ -67,8 +68,7 @@ fn decrypt_tuta_crypt_key_pair(
 	Ok(AsymmetricKeyPair::TutaCryptKeyPairs(TutaCryptKeyPairs {
 		x25519_keys: X25519KeyPair {
 			public_key: X25519PublicKey::from_bytes(x25519_public_key).map_err(mapped_error)?,
-			private_key: X25519PrivateKey::from_bytes(x25519_private_key.as_slice())
-				.map_err(mapped_error)?,
+			private_key: X25519PrivateKey::from_slice(x25519_private_key.as_slice())?,
 		},
 		kyber_keys: KyberKeyPair {
 			public_key: kyber_public_key,
@@ -102,7 +102,7 @@ fn decrypt_rsa_or_rsa_x25519_key_pair(
 			rsa_key_pair,
 			x25519_key_pair: X25519KeyPair {
 				public_key: X25519PublicKey::from_bytes(public_x25519_key)?,
-				private_key: X25519PrivateKey::from_bytes(private_x25519_key.as_slice())?,
+				private_key: X25519PrivateKey::from_slice(private_x25519_key.as_slice())?,
 			},
 		}))
 	} else {
@@ -113,11 +113,13 @@ fn decrypt_rsa_or_rsa_x25519_key_pair(
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey};
+	use crate::crypto::key::AsymmetricKeyPair;
 	use crate::crypto::x25519::X25519KeyPair;
-	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs};
+	use crate::crypto::TutaCryptKeyPairs;
 	use crate::entities::generated::sys::KeyPair;
 	use crate::util::test_utils::generate_random_string;
+	use crypto_primitives::aes::{Aes256Key, Iv};
+	use crypto_primitives::key::GenericAesKey;
 	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
 
 	#[test]
