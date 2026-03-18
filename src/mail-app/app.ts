@@ -31,7 +31,16 @@ import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
+import {
+	assertMainOrNodeBoot,
+	bootFinished,
+	getCurrentStockAppName,
+	isApp,
+	isBrowser,
+	isDesktop,
+	isIOSApp,
+	isOfflineStorageAvailable,
+} from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { AppType } from "../common/misc/ClientConstants.js"
@@ -1066,7 +1075,7 @@ function registerForMailto() {
 		let origin = location.origin
 		try {
 			// @ts-ignore third argument removed from spec, but use is still recommended
-			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tuta Mail")
+			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", getCurrentStockAppName())
 		} catch (e) {
 			// Catch SecurityError's and some other cases when we are not allowed to register a handler
 			console.log("Failed to register a mailto: protocol handler ", e)

@@ -153,7 +153,7 @@ function onSupportRequestSend(dialog: Dialog) {
 		message: "ratingSupportContactedSnackbar_msg",
 		button: client.isCalendarApp()
 			? {
-					label: lang.makeTranslation("", "Get Tuta Mail"),
+					label: "getTutaMail_action",
 					click: () => windowFacade.openLink(isIOSApp() ? TUTA_MAIL_APP_STORE_URL : TUTA_MAIL_GOOGLE_PLAY_URL),
 				}
 			: {

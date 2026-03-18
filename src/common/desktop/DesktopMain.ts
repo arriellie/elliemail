@@ -81,6 +81,7 @@ import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { SuspensionHandler } from "../api/worker/SuspensionHandler"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
 import { CommonNativeFacade } from "../native/common/generatedipc/CommonNativeFacade"
+import { getCurrentStockAppName } from "../api/common/Env.js"
 
 mp()
 
@@ -458,9 +459,10 @@ function manageDownloadsForSession(session: Session, dictUrl: string) {
 
 async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: WindowManager, conf: DesktopConfig, utils: DesktopUtils) {
 	await keyStoreFacade.getDeviceKey().catch(async () => {
+		const appName = getCurrentStockAppName()
 		const { response } = await electron.dialog.showMessageBox({
 			type: "error",
-			title: "Tuta Mail",
+			title: appName,
 			message: lang.getTranslation("secretStorageError_msg", { "{url}": InfoLink.SecretStorage }).text,
 			buttons: [lang.getTranslation("continue_action").text, lang.getTranslation("clearLocalData_action").text, lang.getTranslation("quit_action").text],
 			defaultId: 2,

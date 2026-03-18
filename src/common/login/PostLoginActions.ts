@@ -1,7 +1,7 @@
 import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
-import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
+import { getCurrentStockAppName, getLoginTitle, isAdminClient, isApp, isDesktop } from "../api/common/Env"
 import { assertNotNull, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
@@ -77,13 +77,16 @@ export class PostLoginActions implements PostLoginAction {
 			this.connectivityModel.close(CloseEventBusOption.Pause)
 		})
 
-		// only show "Tuta Mail" after login if there is no custom title set
+		const loginTitle = getLoginTitle()
+		const appName = getCurrentStockAppName()
+
+		// only show the stock app name after login if there is no custom title set
 		if (!this.logins.getUserController().isInternalUser()) {
-			if (document.title === LOGIN_TITLE) {
-				document.title = "Tuta Mail"
+			if (document.title === loginTitle) {
+				document.title = appName
 			}
 		} else {
-			let postLoginTitle = document.title === LOGIN_TITLE ? "Tuta Mail" : document.title
+			let postLoginTitle = document.title === loginTitle ? appName : document.title
 			document.title = neverNull(this.logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 		}
 		notifications.requestPermission()

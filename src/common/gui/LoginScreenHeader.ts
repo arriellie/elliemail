@@ -4,6 +4,7 @@ import m from "mithril"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
 import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
 import { theme } from "./theme.js"
+import { getCurrentStockLogoLabel } from "../api/common/Env.js"
 
 /** Small header-like view for the login screens. */
 export const LoginScreenHeader = pureComponent(() =>
@@ -14,7 +15,7 @@ export const LoginScreenHeader = pureComponent(() =>
 				m(
 					".logo.logo-height.mt-safe-inset",
 					{
-						...landmarkAttrs(AriaLandmarks.Banner, "Tuta Mail logo"),
+						...landmarkAttrs(AriaLandmarks.Banner, getCurrentStockLogoLabel()),
 					},
 					m.trust(theme.logo),
 				),

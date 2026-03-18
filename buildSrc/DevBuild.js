@@ -15,6 +15,7 @@ import { napiPlugin } from "./napiPlugin.js"
 import { buildRuntimePackages } from "./packageBuilderFunctions.js"
 import { sh } from "./sh.js"
 import { copyCryptoPrimitiveCrateIntoWasmDir, WASM_PACK_OUT_DIR } from "./cryptoPrimitivesUtils.js"
+import { getStockAppVariantFromStage } from "../src/common/misc/AppBranding.js"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -169,7 +170,7 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 	// Do assets last so that server that listens to index.html changes does not reload too early
 
 	await runStep("Web: Assets", async () => {
-		await prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging)
+		await prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, app)
 		await fs.promises.writeFile(
 			`${buildDir}/worker-bootstrap.js`,
 			`import "./polyfill.js"
@@ -220,7 +221,18 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 							targetName: "simple-windows-notifications",
 						})
 					: undefined,
-				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs, networkDebugging })),
+				preludeEnvPlugin(
+					env.create({
+						staticUrl: null,
+						version,
+						mode: "Desktop",
+						dist: false,
+						domainConfigs,
+						networkDebugging,
+						stockAppId: app,
+						stockAppVariant: "dev",
+					}),
+				),
 			],
 		})
 
@@ -242,6 +254,7 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 		})
 		const templateGenerator = (await import("./electron-package-json-template.js")).default
 		const packageJSON = await templateGenerator({
+			app,
 			nameSuffix: "-debug",
 			version,
 			updateUrl: `http://localhost:9000/client/${buildDir}`,
@@ -264,7 +277,7 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname.split(path.sep).slice(0, -1).join(path.sep)
 
-async function createBootstrap(env, buildDir) {
+async function createBootstrap(env, buildDir, app) {
 	let jsFileName
 	let htmlFileName
 	switch (env.mode) {
@@ -288,9 +301,9 @@ if (env.staticUrl == null && window.tutaoDefaultApiUrl) {
     // overriden by js dev server
     window.env.staticUrl = window.tutaoDefaultApiUrl
 }
-import('./app.js')`
+import('./${app === "calendar" ? "calendar-app.js" : "app.js"}')`
 	await writeFile(`./${buildDir}/${jsFileName}`, template)
-	const html = await LaunchHtml.renderHtml(imports, env)
+	const html = await LaunchHtml.renderHtml(imports, env, app)
 	await writeFile(`./${buildDir}/${htmlFileName}`, html)
 }
 
@@ -322,7 +335,8 @@ function getStaticUrl(stage, mode, host) {
  * @param networkDebugging {boolean}
  * @return {Promise<void>}
  */
-export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging) {
+export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, app) {
+	const stockAppVariant = getStockAppVariantFromStage(stage)
 	await Promise.all([
 		await fs.emptyDir(path.join(root, `${buildDir}/images`)),
 		fs.copy(path.join(root, "/resources/favicon"), path.join(root, `/${buildDir}/images`)),
@@ -339,6 +353,19 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	/** @type {EnvMode[]} */
 	const modes = ["Browser", "App", "Desktop"]
 	for (const mode of modes) {
-		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs, networkDebugging }), buildDir)
+		await createBootstrap(
+			env.create({
+				staticUrl: getStaticUrl(stage, mode, host),
+				version,
+				mode,
+				dist: false,
+				domainConfigs,
+				networkDebugging,
+				stockAppId: app,
+				stockAppVariant,
+			}),
+			buildDir,
+			app,
+		)
 	}
 }

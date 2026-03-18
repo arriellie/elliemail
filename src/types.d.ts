@@ -23,6 +23,8 @@ declare type JsRequestType = "ipc"
 
 declare type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "Admin"
 declare type PlatformId = "ios" | "android" | "darwin" | "linux" | "win32"
+declare type StockAppId = "mail" | "calendar"
+declare type StockAppVariant = "prod" | "test" | "dev"
 
 /**
  * Different parameters based on the domain the app is running on.
@@ -76,6 +78,8 @@ declare var env: {
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName?: string
+	stockAppId?: StockAppId
+	stockAppVariant?: StockAppVariant
 }
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }

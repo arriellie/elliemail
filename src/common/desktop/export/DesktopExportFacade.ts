@@ -23,6 +23,7 @@ import { FileOpenError } from "../../api/common/error/FileOpenError.js"
 import { ExportError, ExportErrorReason } from "../../api/common/error/ExportError"
 import { DesktopExportLock, LockResult } from "./DesktopExportLock"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
+import { getCurrentStockAppName } from "../../api/common/Env.js"
 
 const EXPORT_DIR = "export"
 
@@ -44,7 +45,7 @@ export class DesktopExportFacade implements ExportFacade {
 	}
 
 	async mailToMsg(bundle: MailBundle, fileName: string): Promise<DataFile> {
-		const subject = `[Tuta Mail] ${bundle.subject}`
+		const subject = `[${getCurrentStockAppName()}] ${bundle.subject}`
 		const email = new Email(bundle.isDraft, bundle.isRead)
 			.subject(subject)
 			.bodyHtml(bundle.body)

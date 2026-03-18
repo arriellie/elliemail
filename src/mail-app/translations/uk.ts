@@ -1383,7 +1383,7 @@ export default {
 		"pricing.cyber_monday_select_action": "Йди до Європи",
 		"pricing.cyberMonday_label": "ЗАОЩАДЖУЙТЕ 62%",
 		"pricing.encryptedCalendar_label": "Повністю зашифрований календар",
-		"pricing.encryptedCalendar_tooltip": "Всі дані в календарях Tuta зашифровані, навіть сповіщення надсилаються на ваш пристрій у зашифрованому вигляді.",
+		"pricing.encryptedCalendar_tooltip": "Всі дані в календарях Ellie зашифровані, навіть сповіщення надсилаються на ваш пристрій у зашифрованому вигляді.",
 		"pricing.encryptedContacts_label": "Зашифрована адресна книга",
 		"pricing.encryptedContacts_tooltip": "Усі дані у вашій адресній книзі сервісу Tuta зашифровані, навіть адреси електронної пошти ваших контактів.",
 		"pricing.encryptedNoTracking_label": "Повністю зашифровані, без відстеження",

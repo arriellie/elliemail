@@ -5,6 +5,7 @@ import { log } from "../DesktopLog"
 import type { DesktopIntegrator } from "./DesktopIntegrator"
 import { ChildProcessExports, ElectronExports, FsExports } from "../ElectronExportTypes"
 import { ExecFileException } from "node:child_process"
+import { getCurrentStockAppName } from "../../api/common/Env.js"
 
 export class DesktopIntegratorLinux implements DesktopIntegrator {
 	_electron: ElectronExports
@@ -62,11 +63,12 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 	enableAutoLaunch(): Promise<void> {
 		return this.isAutoLaunchEnabled().then((enabled) => {
 			if (enabled) return
+			const appName = getCurrentStockAppName()
 			const autoLaunchDesktopEntry = `[Desktop Entry]
 	Type=Application
 	Version=${this._electron.app.getVersion()}
-	Name=${this._electron.app.name}
-	Comment=${this._electron.app.name} startup script
+	Name=${appName}
+	Comment=${appName} startup script
 	Exec=${this.packagePath} -a
 	StartupNotify=false
 	Terminal=false`
@@ -138,9 +140,8 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 	}
 
 	integrate(): Promise<void> {
-		const prefix = this._electron.app.name.includes("test") ? "test " : ""
 		return this.copyIcons()
-			.then(() => this.createDesktopEntry(prefix))
+			.then(() => this.createDesktopEntry())
 			.then(() => {
 				if (process.env["XDG_CURRENT_DESKTOP"] !== "GNOME") return
 
@@ -171,10 +172,11 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 			})
 	}
 
-	createDesktopEntry(prefix: string): Promise<void> {
+	createDesktopEntry(): Promise<void> {
+		const appName = getCurrentStockAppName()
 		const desktopEntry = `[Desktop Entry]
-Name=${prefix}Tuta Mail
-Comment=The desktop client for Tuta Mail, the secure e-mail service.
+Name=${appName}
+Comment=${appName} desktop client
 GenericName=Mail Client
 Keywords=Email;E-mail
 Exec="${this.packagePath}" %U

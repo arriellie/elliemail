@@ -59,17 +59,17 @@ targets:
         IPHONEOS_DEPLOYMENT_TARGET: "16.0"
       configs:
         Debug Development:
-          PRODUCT_NAME: "Tuta D"
+          PRODUCT_NAME: "Ellie Mail Dev"
         Debug Staging:
-          PRODUCT_NAME: "Tuta Test"
+          PRODUCT_NAME: "Ellie Mail Test"
         Debug Production:
-          PRODUCT_NAME: "Tuta Mail"
+          PRODUCT_NAME: "Ellie Mail"
         Release Development:
-          PRODUCT_NAME: "Tuta D"
+          PRODUCT_NAME: "Ellie Mail Dev"
         Release Staging:
-          PRODUCT_NAME: "Tuta Test"
+          PRODUCT_NAME: "Ellie Mail Test"
         Release Production:
-          PRODUCT_NAME: "Tuta Mail"
+          PRODUCT_NAME: "Ellie Mail"
       groups:
         - "codeSigning"
     dependencies:
@@ -107,7 +107,7 @@ targets:
         [
           "${PROJECT_DIR}/tutanota/include",
         ]
-      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Ellie Mail Dev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Ellie Mail Dev"
       SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
       SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
       SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
@@ -133,7 +133,7 @@ targets:
       GENERATE_INFOPLIST_FILE: "YES"
       PRODUCT_NAME: "$(TARGET_NAME)"
       CODE_SIGN_STYLE: "Automatic"
-      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta D.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta D"
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Ellie Mail Dev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Ellie Mail Dev"
       CURRENT_PROJECT_VERSION: "1"
       MARKETING_VERSION: "1.0"
     dependencies:

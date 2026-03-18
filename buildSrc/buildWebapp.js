@@ -17,6 +17,7 @@ import { visualizer } from "rollup-plugin-visualizer"
 import { rollupWasmLoader } from "@tutao/tuta-wasm-loader"
 import replace from "@rollup/plugin-replace"
 import { copyCryptoPrimitiveCrateIntoWasmDir } from "./cryptoPrimitivesUtils.js"
+import { getStockAppVariantFromStage } from "../src/common/misc/AppBranding.js"
 
 /**
  * Builds the web app for production.
@@ -33,6 +34,7 @@ import { copyCryptoPrimitiveCrateIntoWasmDir } from "./cryptoPrimitivesUtils.js"
 
 export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false }) {
 	const isCalendarApp = app === "calendar"
+	const stockAppVariant = getStockAppVariantFromStage(stage)
 	const tsConfig = isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
 	const resolvedBuildDir = path.resolve(buildDir)
@@ -180,6 +182,8 @@ import "./${builtWorkerFile}"`,
 			dist: true,
 			domainConfigs,
 			networkDebugging,
+			stockAppId: app,
+			stockAppVariant,
 		}),
 		app,
 	)
@@ -192,6 +196,8 @@ import "./${builtWorkerFile}"`,
 				dist: true,
 				domainConfigs,
 				networkDebugging,
+				stockAppId: app,
+				stockAppVariant,
 			}),
 			app,
 		)

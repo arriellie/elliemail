@@ -17,6 +17,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
 import replace from "@rollup/plugin-replace"
+import { getStockAppVariantFromNameSuffix } from "../src/common/misc/AppBranding.js"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -28,6 +29,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
  * @param architecture {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
  * @param updateUrl where the client should pull its updates from, if any
+ * @param app {"mail"|"calendar"} the app target to package
  * @param nameSuffix suffix used to distinguish test-, prod- or snapshot builds on the same machine
  * @param notarize {boolean} for the macOS notarization feature
  * @param outDir where copy the finished artifacts
@@ -40,6 +42,7 @@ export async function buildDesktop({
 	version,
 	platform,
 	architecture,
+	app,
 	updateUrl,
 	nameSuffix,
 	notarize,
@@ -70,6 +73,7 @@ export async function buildDesktop({
 	// Currently we have sqlite which avoids building itself if possible and only build
 	console.log("Updating electron-builder config...")
 	const content = await generatePackageJson({
+		app,
 		nameSuffix,
 		version,
 		updateUrl,
@@ -93,7 +97,7 @@ export async function buildDesktop({
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify, networkDebugging)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, app, nameSuffix, disableMinify, networkDebugging)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -130,8 +134,9 @@ export async function buildDesktop({
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
+async function rollupDesktop(dirname, outDir, version, platform, architecture, app, nameSuffix, disableMinify, networkDebugging) {
 	platform = getCanonicalPlatformName(platform)
+	const stockAppVariant = getStockAppVariantFromNameSuffix(nameSuffix)
 	const mainBundle = await rollup({
 		input: [path.join(dirname, "src/common/desktop/DesktopMain.ts"), path.join(dirname, "src/common/desktop/sqlworker.ts")],
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
@@ -186,7 +191,18 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			}),
 			commonjs(),
 			disableMinify ? undefined : terser(),
-			preludeEnvPlugin(createEnv({ staticUrl: null, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging })),
+			preludeEnvPlugin(
+				createEnv({
+					staticUrl: null,
+					version,
+					mode: "Desktop",
+					dist: true,
+					domainConfigs,
+					networkDebugging,
+					stockAppId: app,
+					stockAppVariant,
+				}),
+			),
 		],
 	})
 	await mainBundle.write({ sourcemap: true, format: "esm", dir: outDir })
