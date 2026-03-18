@@ -1147,7 +1147,7 @@ export default {
 		"pricing.custom_title": "Pencitraan merek khusus",
 		"pricing.custom_tooltip": "Whitelabel Tuta dengan merek Anda sendiri dengan menentukan logo dan warna klien web, seluler, dan desktop Tuta.",
 		"pricing.encryptedCalendar_label": "Kalender terenkripsi",
-		"pricing.encryptedCalendar_tooltip": "Semua data di kalender Tuta Anda dienkripsi, bahkan notifikasi pun dikirim secara terenkripsi ke perangkat Anda.",
+		"pricing.encryptedCalendar_tooltip": "Semua data di kalender Ellie Anda dienkripsi, bahkan notifikasi pun dikirim secara terenkripsi ke perangkat Anda.",
 		"pricing.encryptedContacts_label": "Buku alamat terenkripsi",
 		"pricing.encryptedContacts_tooltip": "Semua data di daftar alamat Tuta terenkripsi, bahkan alamat email kontak Anda.",
 		"pricing.encryptedNoTracking_label": "Dienkripsi secara menyeluruh, tanpa pelacakan",

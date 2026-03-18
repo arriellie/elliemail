@@ -1029,7 +1029,7 @@ export default {
 		"pricing.custom_title": "מיתוג מותאם אישית",
 		"pricing.custom_tooltip": "התאם את Tuta אישית עם המיתוג שלך על ידי הגדרת לוגו וצבעים עבור יישומי הדפדפן, שולחן העבודה והמובייל של Tuta.",
 		"pricing.encryptedCalendar_label": "לוח שנה מוצפן במלואו",
-		"pricing.encryptedCalendar_tooltip": "כל המידע בלוח השנה שלך ב-Tuta מוצפן, אפילו ההתרעות נשלחות למכשיר שלך באופן מוצפן.",
+		"pricing.encryptedCalendar_tooltip": "כל המידע בלוח השנה שלך ב-Ellie מוצפן, אפילו ההתרעות נשלחות למכשיר שלך באופן מוצפן.",
 		"pricing.encryptedContacts_label": "רשימת כתובות מוצפנת",
 		"pricing.encryptedContacts_tooltip": "כל המידע של אנשי הקשר שלך ב-Tuta מוצפן, אפילו כתובות הדוא\"ל שלהם.",
 		"pricing.encryptedNoTracking_label": "הצפנה מלאה, ללא מעקב",

@@ -44,7 +44,7 @@ export class DesktopExportFacade implements ExportFacade {
 	}
 
 	async mailToMsg(bundle: MailBundle, fileName: string): Promise<DataFile> {
-		const subject = `[Tuta Mail] ${bundle.subject}`
+		const subject = `[Ellie Mail] ${bundle.subject}`
 		const email = new Email(bundle.isDraft, bundle.isRead)
 			.subject(subject)
 			.bodyHtml(bundle.body)
