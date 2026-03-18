@@ -577,7 +577,7 @@ export const enum InboxRuleType {
 	RECIPIENT_BCC_EQUALS = "3",
 	SUBJECT_CONTAINS = "4",
 	MAIL_HEADER_CONTAINS = "5",
-	MAIL_BODY_CONTAINS = "6",
+	MAIL_BODY_CONTAINS = "1000",
 }
 
 export enum SpamRuleType {
