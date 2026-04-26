@@ -1,4 +1,5 @@
 global.window = undefined
+import { getStockAppDisplayName, getStockLaunchDescription, getStockLoginTitle } from "../src/common/misc/AppBranding.js"
 
 function getCspUrls(env) {
 	// we want to have the following allowed connect-src for a given staticUrl like https://app(.local/.test).tuta.com:
@@ -24,7 +25,10 @@ function getCspUrls(env) {
 /**
  * Renders the initial HTML page to bootstrap Tutanota for different environments
  */
-export async function renderHtml(scripts, env) {
+export async function renderHtml(scripts, env, app = "mail") {
+	const appDisplayName = getStockAppDisplayName(app, env.stockAppVariant)
+	const loginTitle = getStockLoginTitle(app, env.stockAppVariant)
+	const description = getStockLaunchDescription(app)
 	return `<!DOCTYPE html>
 <html>
 <head>
@@ -36,9 +40,9 @@ export async function renderHtml(scripts, env) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 	${scripts.map(renderScriptImport).join("\n\t")}
 	<!-- TutanotaTags -->
-	<title>${env.mode === "App" || env.mode === "Desktop" ? "Tuta Mail" : "Tuta Mail: Login &amp; Sign up for free"}</title>
-	<meta name="description" content="Sign-up for Tuta Mail: Get a free email account with quantum-safe encryption and best privacy for all your emails, calendars and contacts.">
-	<meta name="application-name" content="Tuta Mail">
+	<title>${env.mode === "App" || env.mode === "Desktop" ? appDisplayName : loginTitle}</title>
+	<meta name="description" content="${description}">
+	<meta name="application-name" content="${appDisplayName}">
 	<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 	<link rel="icon" sizes="192x192" href="/images/logo-favicon-192.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -46,7 +50,7 @@ export async function renderHtml(scripts, env) {
     <meta name="twitter:domain" content="tuta.com">
     <meta name="twitter:image" content="https://tuta.com/resources/images/share-tutanota-twitter-thumbnail.png">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Tuta Mail">
+    <meta property="og:site_name" content="${appDisplayName}">
     <meta property="og:title" content="Turn ON Privacy">
     <meta property="og:description"
           content="Get a free email account with quantum-safe encryption and best privacy on all your devices. Green, secure &amp; no ads!">

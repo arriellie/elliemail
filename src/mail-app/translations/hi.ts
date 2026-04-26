@@ -319,7 +319,7 @@ export default {
 		"declineTemplateGroupEmailSubject_msg": "टेम्प्लेट समूह आमंत्रण अस्वीकृत",
 		"defaultColor_label": "डिफ़ॉल्ट रंग: {1}",
 		"defaultDownloadPath_label": "पूर्वनिर्धारित डाउनलोड पथ",
-		"defaultEmailSignature_msg": "--\n<br>\nTuta Mail से सुरक्ष्कित किया गया। \n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nEllie Mail से सुरक्ष्कित किया गया। \n<br>\n{1}",
 		"defaultExternalDelivery_label": "डिफ़ॉल्ट वितरण",
 		"defaultExternalDeliveryInfo_msg": "बाहरी वितरण सूचना का संदेश",
 		"defaultGiftCardMessage_msg": "मुझे आशा है कि आप टूटनोटा के साथ मिलने वाली सुरक्षा और गोपनीयता का आनंद लेंगे!",

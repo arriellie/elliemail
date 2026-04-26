@@ -2,6 +2,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
 import { layout_size, px, size, size as sizes } from "../size.js"
 import { theme } from "../theme.js"
+import { getCurrentStockLogoLabel } from "../../api/common/Env.js"
 
 export interface DesktopBaseHeaderAttrs {
 	firstColWidth: number
@@ -25,7 +26,7 @@ export class DesktopBaseHeader implements ClassComponent<DesktopBaseHeaderAttrs>
 		return m(
 			".logo-height",
 			{
-				...landmarkAttrs(AriaLandmarks.Banner, "Tuta logo"),
+				...landmarkAttrs(AriaLandmarks.Banner, getCurrentStockLogoLabel()),
 				style: {
 					"padding-left": px(layout_size.drawer_menu_width + size.spacing_12 + size.spacing_8),
 					width: px(width),

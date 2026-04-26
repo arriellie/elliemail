@@ -1,9 +1,8 @@
 //@bundleInto:common-min
 
 import { ProgrammingError } from "./error/ProgrammingError.js"
+import { getStockAppDisplayName, getStockAppId, getStockAppVariant, getStockLoginTitle, getStockLogoAriaLabel } from "../../misc/AppBranding.js"
 
-// keep in sync with LaunchHtml.js meta tag title
-export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Browser: "Browser",
 	App: "App",
@@ -12,6 +11,26 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Desktop: "Desktop",
 	Admin: "Admin",
 })
+
+export function getCurrentStockAppId(): StockAppId {
+	return getStockAppId(env.stockAppId)
+}
+
+export function getCurrentStockAppVariant(): StockAppVariant {
+	return getStockAppVariant(env.stockAppVariant)
+}
+
+export function getCurrentStockAppName(): string {
+	return getStockAppDisplayName(getCurrentStockAppId(), getCurrentStockAppVariant())
+}
+
+export function getCurrentStockLogoLabel(): string {
+	return getStockLogoAriaLabel(getCurrentStockAppId(), getCurrentStockAppVariant())
+}
+
+export function getLoginTitle(): string {
+	return getStockLoginTitle(getCurrentStockAppId(), getCurrentStockAppVariant())
+}
 
 export function getWebsocketBaseUrl(domainConfig: DomainConfig): string {
 	return (

@@ -5,6 +5,7 @@ import fs from "fs-extra"
 import { renderHtml } from "./LaunchHtml.js"
 import { mkdir } from "node:fs/promises"
 import path from "node:path"
+import { getStockAppDisplayName } from "../src/common/misc/AppBranding.js"
 
 /**
  *
@@ -36,15 +37,16 @@ export async function createHtml(env, app = "mail") {
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
 	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
 	let indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
-
-	if (app === "calendar") indexTemplate = indexTemplate.replaceAll("app.js", "calendar-app.js")
+	indexTemplate = indexTemplate
+		.replaceAll("__APP_ENTRY__", app === "calendar" ? "calendar-app.js" : "app.js")
+		.replaceAll("__APP_DISPLAY_NAME__", getStockAppDisplayName(app, env.stockAppVariant))
 
 	const index = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
 ${indexTemplate}`
 	return Promise.all([
 		_writeFile(`./${buildDir}/${jsFileName}`, index),
-		renderHtml(imports, env).then((content) => _writeFile(`./${buildDir}/${htmlFileName}`, content)),
+		renderHtml(imports, env, app).then((content) => _writeFile(`./${buildDir}/${htmlFileName}`, content)),
 	])
 }
 

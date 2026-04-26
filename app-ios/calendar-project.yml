@@ -57,17 +57,17 @@ targets:
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
       configs:
         Debug Development:
-          PRODUCT_NAME: "Tuta CD"
+          PRODUCT_NAME: "Ellie Calendar Dev"
         Debug Staging:
-          PRODUCT_NAME: "Tuta C Test"
+          PRODUCT_NAME: "Ellie Calendar Test"
         Debug Production:
-          PRODUCT_NAME: "Tuta Calendar"
+          PRODUCT_NAME: "Ellie Calendar"
         Release Development:
-          PRODUCT_NAME: "Tuta CD"
+          PRODUCT_NAME: "Ellie Calendar Dev"
         Release Staging:
-          PRODUCT_NAME: "Tuta Calendar Test"
+          PRODUCT_NAME: "Ellie Calendar Test"
         Release Production:
-          PRODUCT_NAME: "Tuta Calendar"
+          PRODUCT_NAME: "Ellie Calendar"
       groups:
         - "codeSigning"
     dependencies:
@@ -172,7 +172,7 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: "de.tutao.tutanotaTests"
       PRODUCT_NAME: "$(TARGET_NAME)"
       HEADER_SEARCH_PATHS: [ ]
-      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta CD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta CD"
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Ellie Calendar Dev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Ellie Calendar Dev"
       SWIFT_OBJC_BRIDGING_HEADER: "tutanotaTests/tutanotaTests-Bridging-Header.h"
       SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
       SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
@@ -197,7 +197,7 @@ targets:
       GENERATE_INFOPLIST_FILE: "YES"
       PRODUCT_NAME: "$(TARGET_NAME)"
       CODE_SIGN_STYLE: "Automatic"
-      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Tuta CD.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Tuta CD"
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Ellie Calendar Dev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Ellie Calendar Dev"
       CURRENT_PROJECT_VERSION: "1"
       MARKETING_VERSION: "1.0"
     dependencies:

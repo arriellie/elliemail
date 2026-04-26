@@ -1029,7 +1029,7 @@ export default {
 		"unsubscribeFailed_msg": "Neizdevās atcelt jaunumu saņemšanu vai atrakstīšanos no mailinglistes.",
 		"unsubscribeSuccessful_msg": "Jaunumu saņemšana ir atcelta veiksmīgi!",
 		"update_action": "Aktualizēt",
-		"updateAvailable_label": "Ir pieejama Tuta Desktop jauna versija: ({version})",
+		"updateAvailable_label": "Ir pieejama Ellie Mail jauna versija: ({version})",
 		"updateFound_label": "Ir pieejama jauna versija.",
 		"updateOwnAdminship_msg": "Jūs nevarat mainīt jūsu paša lietotāja administrēšanu/administratoru.",
 		"updatePaymentDataBusy_msg": "Pārbaudām maksājuma datus. Tas var aizņemt līdz pat vienai minūtei.",

@@ -1,6 +1,12 @@
 import path from "node:path"
 import { readFileSync } from "node:fs"
 import { getElectronVersion } from "./getInstalledModuleVersion.js"
+import {
+	getStockAppDisplayName,
+	getStockAppVariantFromNameSuffix,
+	getStockDesktopDescription,
+	getStockDesktopSynopsis,
+} from "../src/common/misc/AppBranding.js"
 
 /**
  * This is used for launching electron:
@@ -9,6 +15,7 @@ import { getElectronVersion } from "./getInstalledModuleVersion.js"
  *
  * @param p {object}
  * @param p.nameSuffix {string}
+ * @param p.app {"mail"|"calendar"}
  * @param p.version {string}
  * @param p.updateUrl {string}
  * @param p.iconPath {string}
@@ -17,9 +24,11 @@ import { getElectronVersion } from "./getInstalledModuleVersion.js"
  * @param [p.unpacked] {boolean}
  * @param p.architecture
  */
-export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, architecture }) {
+export default async function generateTemplate({ app, nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, architecture }) {
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
+	const variant = getStockAppVariantFromNameSuffix(nameSuffix)
+	const productName = getStockAppDisplayName(app, variant)
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
 	const debugKey = process.env.DEBUG_SIGN ? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), { encoding: "utf8" }) : undefined
 	const log = console.log.bind(console)
@@ -37,14 +46,14 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 		electronVersion: await getElectronVersion(log),
 		icon: iconPath,
 		appId: appId,
-		productName: nameSuffix.length > 0 ? nameSuffix.slice(1) + " Tuta Mail" : "Tuta Mail",
+		productName,
 		// name of the appImage
 		artifactName: "${name}-${os}.${ext}",
 		asarUnpack: "desktop/*.node",
 		afterSign: notarize ? "buildSrc/notarize.cjs" : undefined,
 		protocols: [
 			{
-				name: "Mailto Links",
+				name: `${productName} Mailto Links`,
 				schemes: ["mailto"],
 				role: "Editor",
 			},
@@ -129,7 +138,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			// defaults to productName if not specified
 			executableName: appName,
 			icon: path.join(path.dirname(iconPath), "icon/"),
-			synopsis: "Tuta Mail Desktop Client",
+			synopsis: getStockDesktopSynopsis(app, variant),
 			category: "Network",
 			target: [
 				{
@@ -145,7 +154,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 		main: "./desktop/DesktopMain.js",
 		version: version,
 		author: "Tutao GmbH",
-		description: "The desktop client for Tutanota, the secure e-mail service.",
+		description: getStockDesktopDescription(app, variant),
 		type: "module",
 		scripts: {
 			start: "electron .",
