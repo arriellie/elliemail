@@ -31,6 +31,7 @@ await program
 		"use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.",
 	)
 	.option("-d,--disable-minify", "disable minification", false)
+	.option("--production-apis", "for test/snapshot builds, use the production API host while keeping the test app identity", false)
 	.option("-u,--unpacked", "don't pack the app into an installer")
 	.option("-o,--out-dir <outDir>", "where to copy the client")
 	.action(async (stage, host, opts) => {
@@ -95,7 +96,10 @@ async function doBuild(opts) {
 	}
 }
 
-async function buildDesktopClient(version, { stage, host, platform, architecture, app, customDesktopRelease, unpacked, outDir, disableMinify }) {
+async function buildDesktopClient(
+	version,
+	{ stage, host, platform, architecture, app, customDesktopRelease, unpacked, outDir, disableMinify, productionApis },
+) {
 	const { buildDesktop } = await import("./buildSrc/DesktopBuilder.js")
 	const updateUrl = new URL(tutaAppUrl)
 	updateUrl.pathname = "desktop"
@@ -184,17 +188,18 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 		)
 		await buildDesktop(desktopLocalOpts)
 	} else if (stage === "test") {
-		const updateUrl = new URL(tutaTestUrl)
+		const apiUrl = productionApis ? tutaAppUrl : tutaTestUrl
+		const updateUrl = new URL(apiUrl)
 		updateUrl.pathname = "desktop"
 		const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
-			updateUrl: updateUrl,
+			updateUrl: productionApis ? "" : updateUrl,
 			nameSuffix: "-test",
 			notarize: false,
 			networkDebugging: true,
 		})
 		await createHtml(
 			env.create({
-				staticUrl: tutaTestUrl,
+				staticUrl: apiUrl,
 				version,
 				mode: "Desktop",
 				dist: true,
