@@ -6,6 +6,7 @@ import { renderHtml } from "./LaunchHtml.js"
 import { mkdir } from "node:fs/promises"
 import path from "node:path"
 import { buildDirForApp } from "./DevBuild.js"
+import { getStockAppDisplayName } from "../src/common/misc/AppBranding.js"
 
 /**
  *
@@ -37,6 +38,9 @@ export async function createHtml(env, app = "mail") {
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
 	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
 	let indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
+	indexTemplate = indexTemplate
+		.replaceAll("__APP_ENTRY__", "app.js")
+		.replaceAll("__APP_DISPLAY_NAME__", getStockAppDisplayName(env.stockAppId ?? app, env.stockAppVariant))
 
 	const index = `window.whitelabelCustomizations = null
 window.env = ${JSON.stringify(env, null, 2)}
