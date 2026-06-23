@@ -6,7 +6,7 @@ import {
 	getStockAppVariantFromNameSuffix,
 	getStockDesktopDescription,
 	getStockDesktopSynopsis,
-} from "../src/common/misc/AppBranding.js"
+} from "../src/applications/common/misc/AppBranding.js"
 
 /**
  * This is used for launching electron:

@@ -6,7 +6,7 @@ import { renderHtml } from "./LaunchHtml.js"
 import { mkdir } from "node:fs/promises"
 import path from "node:path"
 import { buildDirForApp } from "./DevBuild.js"
-import { getStockAppDisplayName } from "../src/common/misc/AppBranding.js"
+import { getStockAppDisplayName } from "../src/applications/common/misc/AppBranding.js"
 
 /**
  *

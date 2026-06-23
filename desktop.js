@@ -11,7 +11,7 @@ import { Argument, Option, program } from "commander"
 import { domainConfigs } from "./buildSrc/DomainConfigs.js"
 import { BlockList } from "node:net"
 import { runPreflightCheck } from "./buildSrc/runPreflightCheck.js"
-import { getStockAppVariantFromStage } from "./src/common/misc/AppBranding.js"
+import { getStockAppVariantFromStage } from "./src/applications/common/misc/AppBranding.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const tutaTestUrl = new URL("https://app.test.tuta.com")
