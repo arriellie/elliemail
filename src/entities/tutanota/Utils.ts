@@ -140,6 +140,7 @@ export const enum InboxRuleType {
 	RECIPIENT_BCC_EQUALS = "3",
 	SUBJECT_CONTAINS = "4",
 	MAIL_HEADER_CONTAINS = "5",
+	MAIL_BODY_CONTAINS = "1000",
 }
 
 export enum SpamRuleType {
@@ -476,7 +477,6 @@ export interface WebFolder {
 export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
 	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }
-
 export enum ImapSyncEventType {
 	CREATE,
 	UPDATE,
