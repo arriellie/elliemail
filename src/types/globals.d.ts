@@ -41,6 +41,8 @@ declare type JsRequestType = "ipc"
 
 declare type IntegrationPlatformName = "Nextcloud"
 declare type EnvMode = Mode
+declare type StockAppId = "mail" | "calendar"
+declare type StockAppVariant = "prod" | "test" | "dev"
 
 declare var env: EnvType
 

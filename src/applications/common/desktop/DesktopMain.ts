@@ -104,6 +104,7 @@ import { CertificateProvider } from "./CertificateProvider"
 import { CryptoFunctions } from "./CryptoFunctions"
 import { AeadFacade } from "../../../platform-kit/crypto/encryption/symmetric/AeadFacade"
 import { SymmetricKeyDeriver } from "../../../platform-kit/crypto/encryption/symmetric/SymmetricKeyDeriver"
+import { getCurrentStockAppName } from "@tutao/app-env"
 
 mp()
 
@@ -566,9 +567,10 @@ function manageDownloadsForSession(session: Session, dictUrl: string, conf: Desk
 
 async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: WindowManager, conf: DesktopConfig, utils: DesktopUtils) {
 	await keyStoreFacade.getDeviceKey().catch(async () => {
+		const appName = getCurrentStockAppName()
 		const { response } = await electron.dialog.showMessageBox({
 			type: "error",
-			title: "Tuta",
+			title: appName,
 			message: lang.getTranslation("secretStorageError_msg", { "{url}": InfoLink.SecretStorage }).text,
 			buttons: [lang.getTranslation("continue_action").text, lang.getTranslation("clearLocalData_action").text, lang.getTranslation("quit_action").text],
 			defaultId: 2,

@@ -11,6 +11,7 @@ import { Argument, Option, program } from "commander"
 import { domainConfigs } from "./DomainConfigs.js"
 import { BlockList } from "node:net"
 import { runPreflightCheck } from "./runPreflightCheck.js"
+import { getStockAppVariantFromStage } from "../src/applications/common/misc/AppBranding.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = join(__dirname, "..")
@@ -128,10 +129,11 @@ async function doBuild(opts) {
  * @param version {string}
  * @param opts {Opts}
  */
-async function buildDesktopClient(version, { stage, host, platform, architecture, customDesktopRelease, unpacked, outDir, disableMinify, signed }) {
+async function buildDesktopClient(version, { stage, host, platform, architecture, app, customDesktopRelease, unpacked, outDir, disableMinify, signed }) {
 	const { buildDesktop } = await import("./DesktopBuilder.js")
 	const updateUrlObject = new URL(tutaAppUrl)
 	updateUrlObject.pathname = "desktop"
+	const stockAppVariant = getStockAppVariantFromStage(stage)
 
 	/** @type {import("./DesktopBuilder.js").BuildDesktopParam} */
 	const desktopBaseOpts = {
@@ -139,6 +141,7 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 		version,
 		platform: platform,
 		architecture,
+		app,
 		updateUrl: customDesktopRelease ? "" : updateUrlObject.toString(),
 		nameSuffix: "",
 		notarize: !customDesktopRelease,
@@ -150,7 +153,19 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 	}
 
 	if (stage === "release") {
-		await createHtml(env.create({ staticUrl: tutaAppUrl.toString(), version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
+		await createHtml(
+			env.create({
+				staticUrl: tutaAppUrl.toString(),
+				version,
+				mode: "Desktop",
+				dist: true,
+				domainConfigs,
+				networkDebugging: false,
+				stockAppId: app,
+				stockAppVariant,
+			}),
+			app,
+		)
 		await buildDesktop(desktopBaseOpts)
 		if (!customDesktopRelease) {
 			const updateUrl = new URL(tutaTestUrl)
@@ -162,7 +177,19 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 				// Do not notarize test build
 				notarize: false,
 			})
-			await createHtml(env.create({ staticUrl: tutaTestUrl.toString(), version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
+			await createHtml(
+				env.create({
+					staticUrl: tutaTestUrl.toString(),
+					version,
+					mode: "Desktop",
+					dist: true,
+					domainConfigs,
+					networkDebugging: false,
+					stockAppId: app,
+					stockAppVariant: "test",
+				}),
+				app,
+			)
 			await buildDesktop(desktopTestOpts)
 		}
 	} else if (stage === "local") {
@@ -188,7 +215,10 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 				dist: true,
 				domainConfigs,
 				networkDebugging: true,
+				stockAppId: app,
+				stockAppVariant: "dev",
 			}),
+			app,
 		)
 		await buildDesktop(desktopLocalOpts)
 	} else if (stage === "test") {
@@ -200,7 +230,19 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 			notarize: false,
 			networkDebugging: true,
 		})
-		await createHtml(env.create({ staticUrl: tutaTestUrl.toString(), version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: true }))
+		await createHtml(
+			env.create({
+				staticUrl: tutaTestUrl.toString(),
+				version,
+				mode: "Desktop",
+				dist: true,
+				domainConfigs,
+				networkDebugging: true,
+				stockAppId: app,
+				stockAppVariant: "test",
+			}),
+			app,
+		)
 		await buildDesktop(desktopTestOpts)
 	} else if (stage === "prod") {
 		const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
@@ -208,7 +250,19 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 			updateUrl: "http://localhost:9000/desktop",
 			notarize: false,
 		})
-		await createHtml(env.create({ staticUrl: tutaAppUrl.toString(), version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
+		await createHtml(
+			env.create({
+				staticUrl: tutaAppUrl.toString(),
+				version,
+				mode: "Desktop",
+				dist: true,
+				domainConfigs,
+				networkDebugging: false,
+				stockAppId: app,
+				stockAppVariant,
+			}),
+			app,
+		)
 		await buildDesktop(desktopProdOpts)
 	} else {
 		if (host == null) {
@@ -223,7 +277,19 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 			notarize: false,
 			networkDebugging: true,
 		})
-		await createHtml(env.create({ staticUrl: host, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: true }))
+		await createHtml(
+			env.create({
+				staticUrl: host,
+				version,
+				mode: "Desktop",
+				dist: true,
+				domainConfigs,
+				networkDebugging: true,
+				stockAppId: app,
+				stockAppVariant: "dev",
+			}),
+			app,
+		)
 		await buildDesktop(desktopHostOpts)
 	}
 }
