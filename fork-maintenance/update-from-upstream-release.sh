@@ -74,11 +74,12 @@ run_manual_check() {
 validate_and_publish() {
 	release=$1
 	release_commit=$(git rev-parse "$release^{commit}")
-	ellie_tag=$(next_ellie_release_tag "$release")
 	cd "$repo_root"
 	[ "$(git branch --show-current)" = "master" ] || die "check out master before publishing"
 	[ -z "$(git status --porcelain)" ] || die "the working tree has uncommitted or untracked changes"
 	[ "$(git merge-base master "$release_commit")" = "$release_commit" ] || die "master is not based on $release"
+	merge_commits=$(git rev-list --merges --count "$release_commit..master")
+	[ "$merge_commits" -eq 0 ] || die "master contains merge commits; rebuild the fork stack before publishing"
 
 	printf '\nValidating the rebased fork...\n'
 	run_automated_checks "$repo_root"
@@ -87,10 +88,11 @@ validate_and_publish() {
 	[ -z "$(git status --porcelain)" ] || die "validation changed source files; inspect them before publishing"
 	run_manual_check "$repo_root" "rebased fork"
 
-	git fetch origin master
+	git fetch origin master --tags
 	git fetch upstream --tags
 	[ "$(latest_release)" = "$release" ] || die "a newer upstream release appeared; restart the update"
 	expected_origin=$(git rev-parse origin/master)
+	ellie_tag=$(next_ellie_release_tag "$release")
 	git ls-remote --exit-code --refs origin "refs/tags/$ellie_tag" >/dev/null 2>&1 && die "release tag $ellie_tag already exists on origin"
 	[ -z "$(git tag --list "$ellie_tag")" ] || die "release tag $ellie_tag already exists locally"
 	printf 'Type publish to update origin/master and create %s: ' "$ellie_tag"
