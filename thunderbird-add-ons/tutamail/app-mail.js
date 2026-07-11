@@ -1,5 +1,5 @@
 browser.spacesToolbar.addButton("tutamail", {
-	title: "Tuta Mail",
+	title: "Ellie Mail",
 	defaultIcons: "icon-mail.svg",
 	url: "https://app.tuta.com/mail/",
 })

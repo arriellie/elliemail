@@ -1,7 +1,11 @@
 import { ProgrammingError } from "./ProgrammingError"
 
 // keep in sync with LaunchHtml.js meta tag title
-export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
+export const LOGIN_TITLE = "Mail. Done. Right. Ellie Mail Login & Sign up for an Ad-free Mailbox"
+const STOCK_APP_NAMES: Record<StockAppId, string> = Object.freeze({
+	mail: "Ellie Mail",
+	calendar: "Ellie Calendar",
+})
 export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Browser: "Browser",
 	App: "App",
@@ -10,6 +14,46 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Desktop: "Desktop",
 	Admin: "Admin",
 })
+
+function getStockAppId(app: unknown): StockAppId {
+	return app === "calendar" ? "calendar" : "mail"
+}
+
+function getStockAppVariant(variant: unknown): StockAppVariant {
+	return variant === "test" || variant === "dev" ? variant : "prod"
+}
+
+function getStockAppDisplayName(app: unknown, variant: unknown = "prod"): string {
+	const baseName = STOCK_APP_NAMES[getStockAppId(app)]
+	switch (getStockAppVariant(variant)) {
+		case "test":
+			return `${baseName} Test`
+		case "dev":
+			return `${baseName} Dev`
+		default:
+			return baseName
+	}
+}
+
+export function getCurrentStockAppId(): StockAppId {
+	return getStockAppId(env.stockAppId)
+}
+
+export function getCurrentStockAppVariant(): StockAppVariant {
+	return getStockAppVariant(env.stockAppVariant)
+}
+
+export function getCurrentStockAppName(): string {
+	return getStockAppDisplayName(getCurrentStockAppId(), getCurrentStockAppVariant())
+}
+
+export function getCurrentStockLogoLabel(): string {
+	return `${getCurrentStockAppName()} logo`
+}
+
+export function getLoginTitle(): string {
+	return `${getCurrentStockAppName()} Login & Sign up`
+}
 
 export function getWebsocketBaseUrl(domainConfig: DomainConfig): string {
 	return (
