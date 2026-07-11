@@ -184,7 +184,7 @@ export default {
 		"defaultExternalDelivery_label": "Vaikimisi edastus",
 		"defaultExternalDeliveryInfo_msg": "Vaikeseade saatmaks uut e-kirja välisele saajale: konfidentsiaalne (otspunktkrüpteeringuga) või mittekonfidentsiaalne (ilma otspunktkrüpteeringuta).",
 		"defaultMailHandler_label": "Vaikimisi e-postirakendus",
-		"defaultMailHandler_msg": "Registreeri Tuta Desktop vaikimisi e-postirakendusena, nt. et avada e-posti aadressi linke. See toiming võib nõuda administratiivseid õigusi.",
+		"defaultMailHandler_msg": "Registreeri Ellie Mail vaikimisi e-postirakendusena, nt. et avada e-posti aadressi linke. See toiming võib nõuda administratiivseid õigusi.",
 		"defaultSenderMailAddress_label": "Vaikimisi saatja",
 		"defaultSenderMailAddressInfo_msg": "Vaikimisi saatja e-posti aadress uutele e-kirjadele.",
 		"delete_action": "Kustuta",

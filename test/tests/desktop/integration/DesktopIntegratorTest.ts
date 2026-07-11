@@ -12,8 +12,8 @@ import { object, verify, when } from "testdouble"
 import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/applications/common/desktop/integration/WindowsRegistryFacade"
 
 const desktopEntry = `[Desktop Entry]
-Name=Tuta Mail
-Comment=The desktop client for Tuta Mail, the secure e-mail service.
+Name=Ellie Mail
+Comment=Ellie Mail desktop client
 GenericName=Mail Client
 Keywords=Email;E-mail
 Exec="/appimage/path/file.appImage" %U
@@ -260,7 +260,7 @@ o.spec("DesktopIntegrator", () => {
 			o(fsExtraMock.writeFileSync.args.length).equals(3)
 			o(fsExtraMock.writeFileSync.args[0]).equals("/app/path/file/.config/autostart/appName.desktop")
 			o(fsExtraMock.writeFileSync.args[1]).equals(
-				"[Desktop Entry]\n\tType=Application\n\tVersion=appVersion\n\tName=appName\n\tComment=appName startup script\n\tExec=/appimage/path/file.appImage -a\n\tStartupNotify=false\n\tTerminal=false",
+				"[Desktop Entry]\n\tType=Application\n\tVersion=appVersion\n\tName=Ellie Mail\n\tComment=Ellie Mail startup script\n\tExec=/appimage/path/file.appImage -a\n\tStartupNotify=false\n\tTerminal=false",
 			)
 			o(fsExtraMock.writeFileSync.args[2]).deepEquals({ encoding: "utf-8" })
 

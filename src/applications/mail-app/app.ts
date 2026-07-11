@@ -1063,7 +1063,7 @@ function registerForMailto() {
 		let origin = location.origin
 		try {
 			// @ts-ignore third argument removed from spec, but use is still recommended
-			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Tuta Mail")
+			navigator.registerProtocolHandler("mailto", origin + "/mailto#url=%s", "Ellie Mail")
 		} catch (e) {
 			// Catch SecurityError's and some other cases when we are not allowed to register a handler
 			console.log("Failed to register a mailto: protocol handler ", e)

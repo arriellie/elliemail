@@ -11,7 +11,7 @@ function unsupported(e) {
 	document.body.style.color = "black"
 
 	const h1 = document.createElement("h1")
-	h1.innerText = "Tuta Mail"
+	h1.innerText = "__APP_DISPLAY_NAME__"
 	h1.style.fontFamily = "sans-serif"
 	h1.style.fontSize = "40px"
 	h1.style.textAlign = "center"
@@ -57,7 +57,7 @@ function unsupported(e) {
 }
 
 try {
-	import("./app.js").catch(unsupported)
+	import("./__APP_ENTRY__").catch(unsupported)
 } catch (e) {
 	unsupported(e)
 }
