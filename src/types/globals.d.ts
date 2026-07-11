@@ -40,6 +40,8 @@ declare type NativeRequestType = "ipc" | "facade"
 declare type JsRequestType = "ipc"
 
 declare type EnvMode = Mode
+declare type StockAppId = "mail" | "calendar"
+declare type StockAppVariant = "prod" | "test" | "dev"
 
 /** A map from hostname to parameters for that domain. */
 type DomainConfigMap = Record<string, DomainConfig>

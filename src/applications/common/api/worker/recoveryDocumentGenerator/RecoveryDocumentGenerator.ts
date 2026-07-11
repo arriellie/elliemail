@@ -112,10 +112,10 @@ export class PdfRecoveryDocumentGenerator {
 
 		this.doc.changeFont(PDF_FONTS.REGULAR, 12.5)
 		this.doc.addText("If you lose access to your Tuta Account, this code can help you recover it.", [pxToMm(112), pxToMm(372)])
-		this.doc.addText("To use it, visit https://app.tuta.com (or open the Tuta app on your computer or ", [pxToMm(112), pxToMm(390)])
+		this.doc.addText("To use it, visit https://app.tuta.com (or open the Ellie Mail app on your computer or ", [pxToMm(112), pxToMm(390)])
 		this.doc.addText('phone) and click on "Lost account access". Fill out your Email address and', [pxToMm(112), pxToMm(408)])
 		this.doc.addText('Recovery code, or press the "QR code" button to scan the QR code and', [pxToMm(112), pxToMm(426)])
-		this.doc.addText("automatically fill the fields. You can only use the QR code within the Tuta Apps.", [pxToMm(112), pxToMm(444)])
+		this.doc.addText("automatically fill the fields. You can only use the QR code within the Ellie apps.", [pxToMm(112), pxToMm(444)])
 		this.doc.addText("Other apps will not work. This will allow you to either set a new password, or", [pxToMm(112), pxToMm(462)])
 		this.doc.addText("remove a second factor from your Account.", [pxToMm(112), pxToMm(480)])
 
