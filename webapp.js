@@ -15,8 +15,7 @@ import fs from "fs-extra"
 import path, { dirname } from "node:path"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import { fileURLToPath } from "node:url"
-// dynamic import so it's executed after ts6-preload
-const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
+import { runPreflightCheck } from "./buildSrc/runPreflightCheck.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -47,6 +46,8 @@ await program
 		options.stage = stage ?? "release"
 		options.host = host
 
+		runPreflightCheck()
+
 		await doBuild(options)
 	})
 	.parseAsync(process.argv)
@@ -61,6 +62,7 @@ async function doBuild(options) {
 			console.warn("Minification is disabled")
 		}
 
+		const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
 		await buildWebapp({
 			version,
 			stage: options.stage,

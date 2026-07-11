@@ -16,6 +16,7 @@ import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import path from "node:path"
 import { $ } from "zx"
 import fs from "node:fs/promises"
+import { runPreflightCheck } from "./buildSrc/runPreflightCheck.js"
 
 // dynamic import so it's executed after ts6-preload
 const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
@@ -59,6 +60,8 @@ await program
 			process.exit(1)
 		}
 
+		runPreflightCheck("android")
+
 		const apk = await buildAndroid({
 			stage: stage ?? "prod",
 			host: host,
@@ -81,6 +84,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 
 	if (!existing) {
 		if (webClient === "make") {
+			const { runDevBuild } = await import("./buildSrc/DevBuild.js")
 			await runDevBuild({
 				stage,
 				host,
@@ -94,6 +98,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 			})
 		} else {
 			const version = await getTutanotaAppVersion()
+			const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
 			await buildWebapp({
 				version,
 				stage,

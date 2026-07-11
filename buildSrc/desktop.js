@@ -5,18 +5,19 @@ import "./ts6-preload.js"
 import * as env from "./env.js"
 import os from "node:os"
 import { checkArchitectureIsSupported, getCanonicalPlatformName, getTutanotaAppVersion, measure } from "./buildUtils.js"
-import { dirname } from "node:path"
+import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { createHtml } from "./createHtml.js"
 import { Argument, Option, program } from "commander"
 import { domainConfigs } from "./DomainConfigs.js"
 import { BlockList } from "node:net"
+import { runPreflightCheck } from "./runPreflightCheck.js"
 
 // dynamic import so it's executed after ts6-preload
 const { buildWebapp } = await import("./buildWebapp.js")
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const projectRoot = path.join(__dirname, "..")
+const projectRoot = join(__dirname, "..")
 const tutaTestUrl = new URL("https://app.test.tuta.com")
 const tutaAppUrl = new URL("https://app.tuta.com")
 
@@ -47,6 +48,8 @@ await program
 
 		opts.stage = stage ?? "release"
 		opts.host = host
+
+		runPreflightCheck()
 
 		if (opts.customDesktopRelease) {
 			console.log(`Custom desktop release - setting platform to ${process.platform}`)
@@ -102,6 +105,7 @@ async function doBuild(opts) {
 			if (opts.disableMinify) {
 				console.warn("Minification is disabled")
 			}
+			const { buildWebapp } = await import("./buildWebapp.js")
 			await buildWebapp({
 				version,
 				stage: opts.stage,
