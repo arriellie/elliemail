@@ -8,6 +8,7 @@ import { asPaymentInterval, formatPriceDataWithInfo, PaymentInterval } from "../
 import { formatDate, formatStorageSize } from "../../../../ui/utils/Formatter"
 import { UpgradeView, UpgradeViewAttrs } from "../../subscription/UpgradeView"
 import { UpgradeViewModel } from "../../subscription/UpgradeViewModel"
+import { getStockAppBaseName } from "../../misc/AppBranding.js"
 import { showConfirmDowngradingToFreeDialog, showSwitchDialog } from "../../subscription/SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -705,7 +706,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleAppOpen(app: SubscriptionApp) {
-		const appName = app === SubscriptionApp.Calendar ? "Tuta Calendar" : "Tuta Mail"
+		const appName = getStockAppBaseName(app === SubscriptionApp.Calendar ? "calendar" : "mail")
 		const dialogResult = await Dialog.confirm(lang.getTranslation("handleSubscriptionOnApp_msg", { "{1}": appName }), "yes_label")
 		const query = stringToBase64(`settings=subscription`)
 

@@ -303,7 +303,7 @@ export default {
 		"decline_action": "拒绝",
 		"defaultColor_label": "默认颜色：{1}",
 		"defaultDownloadPath_label": "默认下载路径",
-		"defaultEmailSignature_msg": "--\n<br>\n已通过Tuta 安全发送，立即注册您的加密无广告邮箱！\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\n已通过Ellie 安全发送，立即注册您的加密无广告邮箱！\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "默认外发邮件设置：机密（使用端到端加密）或者非机密（不使用端到端加密）。",
 		"defaultExternalDelivery_label": "默认投递",
 		"defaultMailHandler_label": "默认邮件处理软件",
