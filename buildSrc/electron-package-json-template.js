@@ -6,7 +6,7 @@ import {
 	getStockAppVariantFromNameSuffix,
 	getStockDesktopDescription,
 	getStockDesktopSynopsis,
-} from "../src/common/misc/AppBranding.js"
+} from "../src/applications/common/misc/AppBranding.js"
 
 /**
  * This is used for launching electron:
@@ -25,8 +25,8 @@ import {
  * @param p.architecture
  */
 export default async function generateTemplate({ app, nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, architecture }) {
-	const appName = "tutanota-desktop" + nameSuffix
-	const appId = "de.tutao.tutanota" + nameSuffix
+	const appName = "elliemail-desktop" + nameSuffix
+	const appId = "io.arrie.elliemail" + nameSuffix
 	const variant = getStockAppVariantFromNameSuffix(nameSuffix)
 	const productName = getStockAppDisplayName(app, variant)
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
