@@ -135,7 +135,7 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 }
 
 /**
- * If the client is on any app (Tuta Mail or Tuta Calendar), we save the current date as an event to determine if we want to trigger a "rate Tuta" dialog.
+ * If the client is on any app (Ellie Mail or Ellie Calendar), we save the current date as an event to determine if we want to trigger a "rate Tuta" dialog.
  */
 export async function handleRatingByEvent(triggerType: TriggerType) {
 	createEvent(deviceConfig)
@@ -158,7 +158,7 @@ function onSupportRequestSend(dialog: Dialog) {
 		message: "ratingSupportContactedSnackbar_msg",
 		button: client.isCalendarApp()
 			? {
-					label: lang.makeTranslation("", "Get Tuta Mail"),
+					label: "getTutaMail_action",
 					click: () => windowFacade.openLink(isIOSApp() ? TUTA_MAIL_APP_STORE_URL : TUTA_MAIL_GOOGLE_PLAY_URL),
 				}
 			: {

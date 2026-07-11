@@ -1063,7 +1063,7 @@ export default {
 		"pricing.custom_title": "Nhãn hiệu riêng",
 		"pricing.custom_tooltip": "Đặt nhãn trắng cho Tuta với nhãn hiệu của riêng bạn bằng cách chỉ định biểu trưng và màu của các trình khách Tuta trên web, điện thoại và máy tính.",
 		"pricing.encryptedCalendar_label": "Lịch mật mã hoá toàn diện",
-		"pricing.encryptedCalendar_tooltip": "Tất cả dữ liệu trong các lịch Tuta của bạn đều được mật mã hoá, kể cả các thông báo cũng được gửi mật mã hoá đến thiết bị của bạn.",
+		"pricing.encryptedCalendar_tooltip": "Tất cả dữ liệu trong các lịch Ellie của bạn đều được mật mã hoá, kể cả các thông báo cũng được gửi mật mã hoá đến thiết bị của bạn.",
 		"pricing.encryptedContacts_label": "Danh bạ mật mã hoá",
 		"pricing.encryptedContacts_tooltip": "Tất cả dữ liệu trong danh bạ Tuta của bạn đều được mật mã hoá, kể cả địa chỉ thư của các liên hệ.",
 		"pricing.encryptedNoTracking_label": "Mật mã hoá toàn diện, không theo dõi",
