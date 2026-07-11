@@ -15,8 +15,7 @@ import {
 	ServerTypeModel,
 	TypeRef,
 } from "@tutao/meta"
-import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
-import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
+import { getSearchableMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { customTypeDecoders, customTypeEncoders, OfflineStorageTable } from "../../../../app-kit/local-store/OfflineStorage"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/entities/tutanota"
@@ -192,7 +191,7 @@ export class OfflineStoragePersistence {
 				tagSqlValue(serializeMailAddresses(recipients.ccRecipients)),
 				tagSqlValue(serializeMailAddresses(recipients.bccRecipients)),
 				tagSqlValue(serializeMailAddresses([mail.sender])),
-				tagSqlValue(htmlToText(getMailBodyText(body))),
+				tagSqlValue(getSearchableMailBodyText(body)),
 				tagSqlValue(attachments.map((f) => f.name).join(" ")),
 			])
 
