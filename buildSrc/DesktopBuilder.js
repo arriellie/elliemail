@@ -132,7 +132,8 @@ export async function buildDesktop({
 		fs
 			.readdirSync(path.join(distDir, "/installers"))
 			.filter((file) => {
-				const matches = file.startsWith(content.name) || file.endsWith(".yml") || file.endsWith("-unpacked")
+				const matches =
+					file.startsWith(content.name) || file.endsWith(".yml") || file.endsWith("-unpacked") || (unpacked && file.startsWith("mac-"))
 				if (!matches) {
 					console.log("\tSkipping", file)
 				}
