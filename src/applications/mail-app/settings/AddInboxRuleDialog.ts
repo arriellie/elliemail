@@ -592,6 +592,7 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 			})
 		case InboxRuleConditionType.SUBJECT_CONTAINS:
 		case InboxRuleConditionType.MAIL_HEADER_CONTAINS:
+		case InboxRuleConditionType.MAIL_BODY_CONTAINS:
 			return m(TextField, {
 				label: "value_label",
 				autocapitalize: Autocapitalize.none,
@@ -662,6 +663,7 @@ function validateInboxRuleCondition(condition: InboxRuleConditionField): Transla
 	} else if (
 		type !== InboxRuleConditionType.SUBJECT_CONTAINS &&
 		type !== InboxRuleConditionType.MAIL_HEADER_CONTAINS &&
+		type !== InboxRuleConditionType.MAIL_BODY_CONTAINS &&
 		type !== InboxRuleConditionType.HAS_ATTACHMENT &&
 		type !== InboxRuleConditionType.HAS_NO_ATTACHMENT &&
 		!isRegularExpression(currentCleanedValue) &&
@@ -691,7 +693,11 @@ function validateInboxRuleAction(type: InboxRuleActionType, value: MailSet | nul
 }
 
 function getCleanedValue(type: string, value: string): string {
-	if (type === InboxRuleConditionType.SUBJECT_CONTAINS || type === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {
+	if (
+		type === InboxRuleConditionType.SUBJECT_CONTAINS ||
+		type === InboxRuleConditionType.MAIL_HEADER_CONTAINS ||
+		type === InboxRuleConditionType.MAIL_BODY_CONTAINS
+	) {
 		return value
 	} else {
 		return value.trim().toLowerCase()

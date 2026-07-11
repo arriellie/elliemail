@@ -1,10 +1,11 @@
-import { assertNotNull, asyncFind, isEmpty, isNotNull, promiseMap, splitInChunks } from "@tutao/utils"
+import { assertNotNull, asyncFind, isEmpty, isNotNull, lazyAsync, lazyMemoized, promiseMap, splitInChunks } from "@tutao/utils"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EnvProvider } from "@tutao/app-env"
+import { getSearchableMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailModel, MoveMode } from "./MailModel"
-import { ExpandedInboxRule, Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { ExpandedInboxRule, Mail, MailDetails, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { InboxRuleConditionType, InboxRuleActionType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId } from "@tutao/meta"
 import { getMailHeaders } from "./MailUtils"
@@ -30,18 +31,36 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		private readonly inboxRuleModel: InboxRuleModel,
 	) {}
 
-	async findMatchingInboxRule(mail: Readonly<Mail>, sourceFolder: MailSet, ignoreProcessingState = false): Promise<ExpandedInboxRule | null> {
+	async findMatchingInboxRule(
+		mail: Readonly<Mail>,
+		sourceFolder: MailSet,
+		ignoreProcessingState = false,
+		mailDetails?: MailDetails,
+	): Promise<ExpandedInboxRule | null> {
 		if (!this.logins.getUserController().isPaidAccount() || !_shouldApplyRule(mail, sourceFolder, ignoreProcessingState)) {
 			return null
 		}
 		const rules = await this.inboxRuleModel.getOrderedInboxRules()
-		return await this.findMatchingInboxRuleForRules(mail, rules)
+		return await this.findMatchingInboxRuleForRules(mail, rules, mailDetails)
 	}
 
-	private async findMatchingInboxRuleForRules(mail: Readonly<Mail>, rules: Array<ExpandedInboxRule>): Promise<ExpandedInboxRule | null> {
+	private async findMatchingInboxRuleForRules(
+		mail: Readonly<Mail>,
+		rules: Array<ExpandedInboxRule>,
+		mailDetails?: MailDetails,
+	): Promise<ExpandedInboxRule | null> {
+		const loadDetails = lazyMemoized(async () => {
+			if (mailDetails != null) {
+				return mailDetails
+			}
+			if (mail.bucketKey != null && mail._ownerEncSessionKey == null) {
+				await mailLocator.cryptoFacade.resolveWithBucketKey(mail)
+			}
+			return this.mailFacade.loadMailDetailsBlob(mail)
+		})
 		return await asyncFind(
 			rules.filter((rule) => rule.enabled),
-			(rule) => this.checkInboxRuleConditions(mail, rule.conditions as InboxRuleConditionTuple[]),
+			(rule) => this.checkInboxRuleConditions(mail, rule.conditions as InboxRuleConditionTuple[], loadDetails),
 		)
 	}
 
@@ -74,7 +93,7 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		return inboxRule.actions.some((action) => action.type === InboxRuleActionType.EXCLUDE_SPAM)
 	}
 
-	private async checkInboxRuleConditions(mail: Mail, conditions: readonly InboxRuleConditionTuple[]): Promise<boolean> {
+	private async checkInboxRuleConditions(mail: Mail, conditions: readonly InboxRuleConditionTuple[], loadDetails: lazyAsync<MailDetails>): Promise<boolean> {
 		for (const { type, value } of conditions) {
 			try {
 				let matches: boolean
@@ -88,36 +107,39 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 
 					matches = _checkEmailAddresses(mailAddresses, value)
 				} else if (type === InboxRuleConditionType.RECIPIENT_TO_EQUALS) {
-					const toRecipients = (await this.mailFacade.loadMailDetailsBlob(mail)).recipients.toRecipients
+					const toRecipients = (await loadDetails()).recipients.toRecipients
 					matches = _checkEmailAddresses(
 						toRecipients.map((m) => m.address),
 						value,
 					)
 				} else if (type === InboxRuleConditionType.RECIPIENT_CC_EQUALS) {
-					const ccRecipients = (await this.mailFacade.loadMailDetailsBlob(mail)).recipients.ccRecipients
+					const ccRecipients = (await loadDetails()).recipients.ccRecipients
 					matches = _checkEmailAddresses(
 						ccRecipients.map((m) => m.address),
 						value,
 					)
 				} else if (type === InboxRuleConditionType.RECIPIENT_BCC_EQUALS) {
-					const bccRecipients = (await this.mailFacade.loadMailDetailsBlob(mail)).recipients.bccRecipients
+					const bccRecipients = (await loadDetails()).recipients.bccRecipients
 					matches = _checkEmailAddresses(
 						bccRecipients.map((m) => m.address),
 						value,
 					)
 				} else if (type === InboxRuleConditionType.RECIPIENT_ANY_EQUALS) {
-					const { toRecipients, ccRecipients, bccRecipients } = (await this.mailFacade.loadMailDetailsBlob(mail)).recipients
+					const { toRecipients, ccRecipients, bccRecipients } = (await loadDetails()).recipients
 					const addresses = [...toRecipients, ...ccRecipients, ...bccRecipients].map((r) => r.address)
 					matches = _checkEmailAddresses(addresses, value)
 				} else if (type === InboxRuleConditionType.SUBJECT_CONTAINS) {
 					matches = _checkContainsRuleCondition(mail.subject, value)
 				} else if (type === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {
-					const details = await this.mailFacade.loadMailDetailsBlob(mail)
+					const details = await loadDetails()
 					if (details.headers != null) {
 						matches = _checkContainsRuleCondition(getMailHeaders(details.headers), value)
 					} else {
 						return false
 					}
+				} else if (type === InboxRuleConditionType.MAIL_BODY_CONTAINS) {
+					const { body } = await loadDetails()
+					matches = _checkContainsRuleCondition(getSearchableMailBodyText(body), value)
 				} else if (type === InboxRuleConditionType.HAS_ATTACHMENT) {
 					// this does not care about inline attachments
 					matches = !isEmpty(mail.attachments)

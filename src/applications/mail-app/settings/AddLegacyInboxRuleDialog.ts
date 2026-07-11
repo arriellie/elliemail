@@ -63,7 +63,9 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					value: inboxRuleValue(),
 					oninput: inboxRuleValue,
 					helpLabel: () =>
-						inboxRuleType() !== InboxRuleConditionType.SUBJECT_CONTAINS && inboxRuleType() !== InboxRuleConditionType.MAIL_HEADER_CONTAINS
+						inboxRuleType() !== InboxRuleConditionType.SUBJECT_CONTAINS &&
+						inboxRuleType() !== InboxRuleConditionType.MAIL_HEADER_CONTAINS &&
+						inboxRuleType() !== InboxRuleConditionType.MAIL_BODY_CONTAINS
 							? lang.get("emailSenderPlaceholder_label")
 							: lang.get("emptyString_msg"),
 				}),
@@ -157,6 +159,7 @@ function validateLegacyInboxRuleInput(type: string, value: string, ruleId: Id | 
 	} else if (
 		type !== InboxRuleConditionType.SUBJECT_CONTAINS &&
 		type !== InboxRuleConditionType.MAIL_HEADER_CONTAINS &&
+		type !== InboxRuleConditionType.MAIL_BODY_CONTAINS &&
 		!isRegularExpression(currentCleanedValue) &&
 		!isDomainName(currentCleanedValue) &&
 		!isMailAddress(currentCleanedValue, false)
@@ -174,7 +177,11 @@ function validateLegacyInboxRuleInput(type: string, value: string, ruleId: Id | 
 }
 
 function getCleanedValue(type: string, value: string) {
-	if (type === InboxRuleConditionType.SUBJECT_CONTAINS || type === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {
+	if (
+		type === InboxRuleConditionType.SUBJECT_CONTAINS ||
+		type === InboxRuleConditionType.MAIL_HEADER_CONTAINS ||
+		type === InboxRuleConditionType.MAIL_BODY_CONTAINS
+	) {
 		return value
 	} else {
 		return value.trim().toLowerCase()
@@ -224,6 +231,10 @@ function getLegacyInboxRuleConditionTypeNameMapping(): SelectorItemList<string> 
 		{
 			value: InboxRuleConditionType.MAIL_HEADER_CONTAINS,
 			name: lang.getTranslationText("inboxRuleMailHeaderContains_action"),
+		},
+		{
+			value: InboxRuleConditionType.MAIL_BODY_CONTAINS,
+			name: lang.getTranslationText("mailBody_label"),
 		},
 	]
 }

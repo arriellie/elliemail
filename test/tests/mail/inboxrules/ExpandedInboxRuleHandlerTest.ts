@@ -1,5 +1,6 @@
 import o, { verify } from "@tutao/otest"
 import {
+	BodyTypeRef,
 	ExpandedInboxRule,
 	ExpandedInboxRuleTypeRef,
 	HeaderTypeRef,
@@ -88,6 +89,23 @@ o.spec("ExpandedInboxRuleHandler", () => {
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)
+		})
+
+		o.test("matches body conditions alongside other conditions using the supplied mail details", async () => {
+			const rule = _createRule(
+				[
+					_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "your order"),
+					_createRuleCondition(InboxRuleConditionType.MAIL_BODY_CONTAINS, "/invoice\\s+123/"),
+				],
+				[],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "Your Order" })
+			const body = createTestEntity(BodyTypeRef, { text: "<p>Invoice <strong>123</strong></p>" })
+			const mailDetails = createTestEntity(MailDetailsTypeRef, { body })
+			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+
+			o.check(await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true, mailDetails)).deepEquals(rule)
+			verify(mailFacade.loadMailDetailsBlob(anything()), { times: 0 })
 		})
 
 		o.test("sender is checked for FROM_EQUALS condition and matching rule is found", async () => {

@@ -63,6 +63,7 @@ o.spec("ProcessInboxHandler", function () {
 			sets: [spamFolder._id],
 			subject: "subject",
 			_ownerGroup: "owner",
+			_ownerEncSessionKey: new Uint8Array([1, 2, 3]),
 			mailDetails: ["detailsList", mailDetails._id],
 			unread: true,
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
@@ -107,7 +108,7 @@ o.spec("ProcessInboxHandler", function () {
 				skipPredictionReason: SkipClientSpamClassificationReason.None,
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
-			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(null)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(null)
 
 			const mailInstanceSessionKeys = [
 				createTestEntity(InstanceSessionKeyTypeRef, {
@@ -138,7 +139,8 @@ o.spec("ProcessInboxHandler", function () {
 			o.check(assertNotNull(processInboxDatumCaptor.value)[0].ownerEncMailSessionKeys).deepEquals(mailInstanceSessionKeys)
 		})
 
-		o.test("no instanceSessionKeys sent if isLeaderClient == false", async function () {
+		o.test("resolves the key without sending it if isLeaderClient is false", async function () {
+			mail._ownerEncSessionKey = null
 			mail.sets = [inboxFolder._id]
 
 			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
@@ -148,7 +150,7 @@ o.spec("ProcessInboxHandler", function () {
 				skipPredictionReason: SkipClientSpamClassificationReason.None,
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
-			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(null)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(null)
 
 			const mailInstanceSessionKeys = [
 				createTestEntity(InstanceSessionKeyTypeRef, {
@@ -172,6 +174,7 @@ o.spec("ProcessInboxHandler", function () {
 
 			await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, false)
 
+			verify(cryptoFacade.resolveWithBucketKey(mail), { times: 1 })
 			await delay(0)
 			verify(mailFacade.processNewMails(anything(), anything()), { times: 0 })
 		})
@@ -189,7 +192,7 @@ o.spec("ProcessInboxHandler", function () {
 			skipPredictionReason: SkipClientSpamClassificationReason.None,
 		})
 		when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
-		when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(null)
 
 		await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 
@@ -236,13 +239,13 @@ o.spec("ProcessInboxHandler", function () {
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
 			when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
-			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(matchingInboxRule)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(matchingInboxRule)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, false)
 
 			o.check(targetFolder).deepEquals(trashFolder)
 			verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder), { times: 1 })
+			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails), { times: 1 })
 
 			await delay(0)
 			verify(mailFacade.processNewMails(anything(), anything()), { times: 0 })
@@ -319,13 +322,13 @@ o.spec("ProcessInboxHandler", function () {
 				skipPredictionReason: SkipClientSpamClassificationReason.ClassifiedByTrustedServerClassifier,
 			})
 			when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
-			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(matchingInboxRule)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(matchingInboxRule)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 
 			o.check(targetFolder).deepEquals(trashFolder)
 			verify(spamHandler.predictSpamForNewMail(anything(), anything()), { times: 0 })
-			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder), { times: 1 })
+			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails), { times: 1 })
 
 			const processInboxDatum: UnencryptedProcessInboxDatum = {
 				classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
@@ -349,13 +352,13 @@ o.spec("ProcessInboxHandler", function () {
 				skipPredictionReason: SkipClientSpamClassificationReason.None,
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
-			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(null)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(null)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, true)
 
 			o.check(targetFolder).deepEquals(inboxFolder)
 			verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder), { times: 1 })
+			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails), { times: 1 })
 			verify(inboxRuleHandler.getMoveActionValue(anything(), anything()), { times: 0 })
 
 			const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -382,13 +385,13 @@ o.spec("ProcessInboxHandler", function () {
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
 			when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
-			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(matchingInboxRule)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(matchingInboxRule)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, true)
 
 			o.check(targetFolder).deepEquals(trashFolder)
 			verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder), { times: 1 })
+			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails), { times: 1 })
 			verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 
 			const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -415,13 +418,13 @@ o.spec("ProcessInboxHandler", function () {
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
 			when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
-			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(matchingInboxRule)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(matchingInboxRule)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 
 			o.check(targetFolder).deepEquals(trashFolder)
 			verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder), { times: 1 })
+			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails), { times: 1 })
 			verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 
 			const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -450,7 +453,7 @@ o.spec("ProcessInboxHandler", function () {
 					skipPredictionReason: SkipClientSpamClassificationReason.None,
 				})
 				when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(true)
-				when(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder)).thenResolve(matchingInboxRule)
+				when(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder, false, mailDetails)).thenResolve(matchingInboxRule)
 			})
 
 			o.test("when the inbox rule moves to Spam, keep mail in Spam and apply other result actions", async () => {
@@ -460,7 +463,7 @@ o.spec("ProcessInboxHandler", function () {
 
 				o.check(targetFolder).deepEquals(spamFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
+				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder, false, mailDetails), { times: 1 })
 				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -483,7 +486,7 @@ o.spec("ProcessInboxHandler", function () {
 
 				o.check(targetFolder).deepEquals(spamFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
+				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder, false, mailDetails), { times: 1 })
 				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule), { times: 1 })
 
@@ -507,7 +510,7 @@ o.spec("ProcessInboxHandler", function () {
 
 				o.check(targetFolder).deepEquals(spamFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
+				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder, false, mailDetails), { times: 1 })
 				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule), { times: 1 })
 
@@ -531,7 +534,7 @@ o.spec("ProcessInboxHandler", function () {
 
 				o.check(targetFolder).deepEquals(trashFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
+				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder, false, mailDetails), { times: 1 })
 				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule), { times: 1 })
 
@@ -555,7 +558,7 @@ o.spec("ProcessInboxHandler", function () {
 
 				o.check(targetFolder).deepEquals(inboxFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
-				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
+				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder, false, mailDetails), { times: 1 })
 				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule), { times: 1 })
 
@@ -575,7 +578,7 @@ o.spec("ProcessInboxHandler", function () {
 
 		o.test("retry in case of locked error", async function () {
 			let throwError = true
-			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(null)
+			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, false, mailDetails)).thenResolve(null)
 			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,

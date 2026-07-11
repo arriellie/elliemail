@@ -91,12 +91,12 @@ export class ProcessInboxHandler {
 		}
 
 		let instanceSessionKeys: InstanceSessionKey[] = []
-		// resolve sessionKeys for mail and their corresponding files if bucket key exists, and we are the
-		// leader client, i.e. isLeaderClient == true
-		// we resolveWithBucketKey before predicting spam to have an encryptionAuthStatus on the mail instance
-		if (isLeaderClient && mail.bucketKey) {
+		// Prepare the key before loading details and retain the keys only for the leader to upload.
+		if (mail.bucketKey != null && (isLeaderClient || mail._ownerEncSessionKey == null)) {
 			const resolvedSessionKeys = await this.cryptoFacade.resolveWithBucketKey(mail)
-			instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
+			if (isLeaderClient) {
+				instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
+			}
 		}
 
 		let mailDetails: MailDetails
@@ -148,7 +148,7 @@ export class ProcessInboxHandler {
 		if (targetFolder.folderType === MailSetKind.INBOX || skipPredictionReason === SkipClientSpamClassificationReason.None) {
 			// mail landed in Inbox or was moved to Spam folder by client side classification
 			const inboxRuleHandler = await this.inboxRuleHandler()
-			matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
+			matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder, false, mailDetails)
 
 			if (matchingInboxRule != null) {
 				const excludeFromSpam = inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule)
@@ -213,6 +213,9 @@ export class ProcessInboxHandler {
 
 		// when processNeeded, the mail should be in process by the regular handler and be eventually processed
 		if (!mail.processNeeded) {
+			if (mail.bucketKey != null && mail._ownerEncSessionKey == null) {
+				await this.cryptoFacade.resolveWithBucketKey(mail)
+			}
 			const inboxRuleHandler = await this.inboxRuleHandler()
 			const matchingRule = await inboxRuleHandler.findMatchingInboxRule(mail, sourceFolder, true)
 			if (matchingRule) {

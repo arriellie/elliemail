@@ -1,4 +1,4 @@
-import { ExpandedInboxRule, InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
+import { ExpandedInboxRule, InboxRule, Mail, MailDetails, MailSet } from "@tutao/entities/tutanota"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { isDomainName, isRegularExpression } from "@tutao/utils"
 import type { SelectorItemList } from "../../../../ui/base/DropDownSelector"
@@ -16,7 +16,7 @@ export interface InboxRuleHandler<T extends SomeInboxRule = SomeInboxRule> {
 	 * Checks the mail for an existing inbox rule and returns matching rule
 	 * @returns The matching inbox rule
 	 */
-	findMatchingInboxRule(mail: Readonly<Mail>, sourceFolder: MailSet, ignoreProcessingState?: boolean): Promise<T | null>
+	findMatchingInboxRule(mail: Readonly<Mail>, sourceFolder: MailSet, ignoreProcessingState?: boolean, mailDetails?: MailDetails): Promise<T | null>
 	/** Get the move target folder of the inbox rule, if any */
 	getMoveActionValue(inboxRule: T, mailboxDetail: MailboxDetail): Promise<MailSet | null>
 	/** Get the inbox rule's labels to be applied, if any */
@@ -75,6 +75,10 @@ export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string>
 			name: lang.getTranslationText("inboxRuleMailHeaderContains_action"),
 		},
 		{
+			value: InboxRuleConditionType.MAIL_BODY_CONTAINS,
+			name: lang.getTranslationText("mailBody_label"),
+		},
+		{
 			value: InboxRuleConditionType.HAS_ATTACHMENT,
 			name: lang.getTranslationText("inboxRuleHasAttachment_label"),
 		},
@@ -112,15 +116,15 @@ export function getInboxRuleConditionTypeName(type: string): string {
 }
 
 export function _checkContainsRuleCondition(value: string, conditionValue: string): boolean {
-	return (isRegularExpression(conditionValue) && _matchesRegularExpression(value, conditionValue)) || value.includes(conditionValue)
+	return _matchesRegularExpression(value, conditionValue, true) || value.toLowerCase().includes(conditionValue.toLowerCase())
 }
 
 /** export for test. */
-export function _matchesRegularExpression(value: string, conditionValue: string): boolean {
+export function _matchesRegularExpression(value: string, conditionValue: string, caseInsensitive = false): boolean {
 	if (isRegularExpression(conditionValue)) {
 		let flags = conditionValue.replace(/.*\/([gimsuy]*)$/, "$1")
 		let pattern = conditionValue.replace(new RegExp("^/(.*?)/" + flags + "$"), "$1")
-		let regExp = new RegExp(pattern, flags)
+		let regExp = new RegExp(pattern, caseInsensitive && !flags.includes("i") ? flags + "i" : flags)
 		return regExp.test(value)
 	}
 
@@ -132,7 +136,7 @@ export function _checkEmailAddresses(mailAddresses: string[], conditionValue: st
 		let cleanMailAddress = mailAddress.toLowerCase().trim()
 
 		if (isRegularExpression(conditionValue)) {
-			return _matchesRegularExpression(cleanMailAddress, conditionValue)
+			return _matchesRegularExpression(cleanMailAddress, conditionValue, true)
 		} else if (isDomainName(conditionValue)) {
 			let domain = cleanMailAddress.split("@")[1]
 			return domain === conditionValue
