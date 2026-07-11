@@ -7,8 +7,6 @@ import terser from "@rollup/plugin-terser"
 import electronBuilder from "electron-builder"
 import generatePackageJson from "./electron-package-json-template.js"
 import { create as createEnv, preludeEnvPlugin } from "./env.js"
-import cp from "node:child_process"
-import util from "node:util"
 import { fileURLToPath } from "node:url"
 import { getCanonicalPlatformName } from "./buildUtils.js"
 import { domainConfigs } from "./DomainConfigs.js"
@@ -18,7 +16,6 @@ import { napiPlugin } from "./napiPlugin.js"
 import replace from "@rollup/plugin-replace"
 import typescript from "@rollup/plugin-typescript"
 
-const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
@@ -97,12 +94,10 @@ export async function buildDesktop({
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
-		// dmg-license is required by electron to build the mac installer
-		// We can't put dmg-license as a dependency in package.json because
-		// it will cause npm install to fail if you do it in linux or windows
-		// We could install it in mac and then it will be in package-lock.json
-		// but then we will have to be vigilant that it doesn't get removed ever
-		await exec("npm install dmg-license")
+		// dmg-license is an optional dependency: npm ci installs it on macOS. Do
+		// not run npm install here, because a release build must not rewrite the
+		// locked package manifest that the validation step subsequently checks.
+		await fs.promises.access(path.join(projectRoot, "node_modules", "dmg-license"))
 	}
 
 	// package for linux, win, mac
