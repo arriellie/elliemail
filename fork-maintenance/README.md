@@ -20,6 +20,19 @@ The helper performs the complete update:
 6. Fetches again, refuses to continue if a newer release appeared, and publishes with an exact force-with-lease after you
    type `publish`.
 
+### Publishing to the fork's `master`
+
+This fork deliberately updates `master` directly after the automated checks and manual production-login smoke test pass.
+The upstream-derived `githooks/pre-push` hook rejects every direct push to `master` and suggests its own Jenkins flow; that
+flow does not apply to this fork. The helper therefore uses:
+
+```sh
+git push --no-verify --force-with-lease="refs/heads/master:<expected-origin-sha>" origin master
+```
+
+`--no-verify` bypasses only the local hook. The exact `--force-with-lease` remains required: it prevents overwriting a
+remote `master` that changed after the helper fetched it. Do not replace this with an unguarded `--force`.
+
 If the rebase stops for conflicts, resolve them and run `git rebase --continue` until it completes. The helper prints a
 command in this form to resume validation and publication:
 
