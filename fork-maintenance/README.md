@@ -14,8 +14,8 @@ The helper performs the complete update:
 1. Fetches upstream tags and selects the newest release by version.
 2. Treats that published production tag as the qualified upstream baseline.
 3. Creates a timestamped safety branch and rebases the fork onto the release.
-4. Checks required tool versions, initializes submodules, installs locked dependencies, builds the rebased desktop client,
-   type-checks it, and runs the test suite.
+4. Checks required tool versions, initializes submodules, installs locked dependencies, builds an unpacked custom desktop
+   release through the same `desktop.js` release path used by upstream, type-checks it, and runs the test suite.
 5. Pauses while you launch the rebased build and manually verify login, mailbox loading, and basic send/receive behavior.
 6. Fetches again, refuses to continue if a newer release appeared, and publishes with an exact force-with-lease after you
    type `publish`.

@@ -31,7 +31,7 @@ run_automated_checks() {
 	git submodule sync --recursive
 	git submodule update --init --recursive
 	npm ci
-	node make prod --desktop-build-only
+	node desktop release --custom-desktop-release --unpacked
 	npm run mail:types
 	npm test
 }
@@ -39,8 +39,21 @@ run_automated_checks() {
 run_manual_check() {
 	root=$1
 	label=$2
+	case "$(uname -s)" in
+		Darwin)
+			app_path=$(find "$root/artifacts/desktop" -type d -name '*.app' -print 2>/dev/null | sed -n '1p')
+			[ -n "$app_path" ] || die "could not find the unpacked macOS application"
+			launch_command="open -W '$app_path'"
+			;;
+		Linux)
+			app_path=$(find "$root/artifacts/desktop" -type f -perm -111 -print 2>/dev/null | sed -n '1p')
+			[ -n "$app_path" ] || die "could not find the unpacked Linux application"
+			launch_command="'$app_path'"
+			;;
+		*) die "manual launch discovery is not implemented for $(uname -s)" ;;
+	esac
 	printf '\nLaunch the %s build with:\n' "$label"
-	printf '  cd %s && ./node_modules/.bin/electron ./build/\n' "$root"
+	printf '  %s\n' "$launch_command"
 	printf 'Confirm that login works, the mailbox loads, and basic send/receive behavior works.\n'
 	printf 'Type yes after the smoke test passes: '
 	read -r answer
