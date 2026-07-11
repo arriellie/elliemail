@@ -1,7 +1,7 @@
 import { Argument, Option, program } from "commander"
-import { runDevBuild } from "./buildSrc/DevBuild.js"
 import { spawn } from "node:child_process"
 import { chalk } from "zx"
+import { runEngineCheck } from "./buildSrc/runPreflightCheck.js"
 
 await program
 	.usage("[options] [test|prod|local|host <url>]")
@@ -35,6 +35,8 @@ await program
 		}
 
 		try {
+			runEngineCheck()
+			const { runDevBuild } = await import("./buildSrc/DevBuild.js")
 			await runDevBuild({
 				stage: stage ?? "local",
 				host,
