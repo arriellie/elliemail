@@ -4,8 +4,7 @@ import { untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/S
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { elementIdPart, getTypeString, ListElementEntity, listIdPart, TypeRef } from "../../../../platform-kit/meta"
-import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
-import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
+import { getSearchableMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import type { OfflineStorageTable } from "../../../../app-kit/local-store/OfflineStorage"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/entities/tutanota"
@@ -147,7 +146,7 @@ export class OfflineStoragePersistence {
                 ${serializeMailAddresses(recipients.ccRecipients)},
                 ${serializeMailAddresses(recipients.bccRecipients)},
                 ${serializeMailAddresses([mail.sender])},
-                ${htmlToText(getMailBodyText(body))},
+                ${getSearchableMailBodyText(body)},
                 ${attachments.map((f) => f.name).join(" ")}
                 )`
 			await this.sqlCipherFacade.run(query, params)

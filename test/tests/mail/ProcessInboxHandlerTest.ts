@@ -103,7 +103,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 				targetFolder: inboxFolder,
 				processInboxDatum: processInboxDatum,
 			})
-			when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+			when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve(null)
 
 			const mailInstanceSessionKeys = [
 				createTestEntity(InstanceSessionKeyTypeRef, {
@@ -147,7 +147,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 				targetFolder: inboxFolder,
 				processInboxDatum: processInboxDatum,
 			})
-			when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+			when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve(null)
 
 			const mailInstanceSessionKeys = [
 				createTestEntity(InstanceSessionKeyTypeRef, {
@@ -193,7 +193,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			targetFolder: inboxFolder,
 			processInboxDatum: processInboxDatum,
 		})
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve(null)
 
 		const mailInstanceSessionKeys = [
 			createTestEntity(InstanceSessionKeyTypeRef, {
@@ -223,7 +223,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 	o("handleIncomingMail does move mail if it has been processed already", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = false
-		verify(inboxRuleHandler.findMatchingInboxRule(anything(), anything(), anything()), { times: 0 })
+		verify(inboxRuleHandler.findMatchingInboxRule(anything(), anything(), anything(), anything(), anything()), { times: 0 })
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 		o(targetFolder).deepEquals(inboxFolder)
@@ -244,7 +244,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			targetFolder: inboxFolder,
 			processInboxDatum: processInboxDatum,
 		})
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve({
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve({
 			targetFolder: trashFolder,
 			processInboxDatum: processInboxDatum,
 			excludeFromSpamFilter: false,
@@ -259,7 +259,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, false)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 1 })
-		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder), { times: 1 })
+		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails), { times: 1 })
 		o(targetFolder).deepEquals(trashFolder)
 		await delay(0)
 
@@ -280,7 +280,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			targetFolder: inboxFolder,
 			processInboxDatum: processInboxDatum,
 		})
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve({
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve({
 			targetFolder: trashFolder,
 			processInboxDatum: processInboxDatum,
 			excludeFromSpamFilter: true,
@@ -296,7 +296,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 		//It checks rules that are excluded from spam classifier and then the rest.
-		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder), { times: 1 })
+		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails), { times: 1 })
 		o(targetFolder).deepEquals(trashFolder)
 		await delay(0)
 
@@ -326,7 +326,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			targetFolder: inboxFolder,
 			processInboxDatum,
 		})
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve({
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve({
 			targetFolder: trashFolder,
 			processInboxDatum,
 		})
@@ -341,7 +341,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 1 })
 		//It checks rules that are excluded from spam classifier and then the rest.
-		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder), { times: 1 })
+		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails), { times: 1 })
 		o(targetFolder).deepEquals(trashFolder)
 		await delay(0)
 
@@ -371,7 +371,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 			targetFolder: spamFolder,
 			processInboxDatum,
 		})
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve({
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve({
 			targetFolder: trashFolder,
 			processInboxDatum,
 		})
@@ -385,7 +385,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 		const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 1 })
-		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder), { times: 1 })
+		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails), { times: 1 })
 		o(targetFolder).deepEquals(spamFolder)
 		await delay(0)
 
@@ -404,37 +404,37 @@ o.spec("ProcessInboxHandlerTest", function () {
 	o("processInboxRulesOnly does nothing if mail needs processing", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = true
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true, mailDetails)).thenResolve(null)
 		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
 
 		o(targetFolder).deepEquals(inboxFolder)
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
-		verify(inboxRuleHandler.findMatchingInboxRule(anything(), anything(), anything(), anything()), { times: 0 })
+		verify(inboxRuleHandler.findMatchingInboxRule(anything(), anything(), anything(), anything(), anything()), { times: 0 })
 	})
 
 	o("processInboxRulesOnly applies only inbox rules, does not interact with classifier", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = false
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true)).thenResolve({
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true, mailDetails)).thenResolve({
 			targetFolder: trashFolder,
 		})
 		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
-		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true), { times: 1 })
+		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true, mailDetails), { times: 1 })
 		o(targetFolder).deepEquals(trashFolder)
 	})
 
 	o("processInboxRulesOnly applies rules excluded from spamFilter, does not interact with classifier", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = false
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true)).thenResolve({
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true, mailDetails)).thenResolve({
 			targetFolder: trashFolder,
 		})
 		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
-		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true), {
+		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true, mailDetails), {
 			times: 1,
 		})
 		o(targetFolder).deepEquals(trashFolder)
@@ -443,11 +443,11 @@ o.spec("ProcessInboxHandlerTest", function () {
 	o("processInboxRulesOnly returns inbox if no rule matches", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = false
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true, mailDetails)).thenResolve(null)
 		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
-		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true), {
+		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true, mailDetails), {
 			times: 1,
 		})
 
@@ -456,7 +456,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 	o("handleIncomingMail does move mail from inbox to spam folder if mail is spam", async function () {
 		mail.sets = [inboxFolder._id]
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve(null)
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			mailId: mail._id,
@@ -494,7 +494,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 	o("handleIncomingMail does NOT move mail from inbox to spam folder if mail is ham", async function () {
 		mail.sets = [inboxFolder._id]
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve(null)
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			classifierType: null,
 			mailId: mail._id,
@@ -533,7 +533,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 	o("handleIncomingMail does NOT move mail from spam to inbox folder if mail is spam", async function () {
 		mail.sets = [spamFolder._id]
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve(null)
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			mailId: mail._id,
@@ -571,7 +571,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 	o("handleIncomingMail moves mail from spam to inbox folder if mail is ham", async function () {
 		mail.sets = [spamFolder._id]
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve(null)
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			mailId: mail._id,
@@ -609,7 +609,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 
 	o("handleIncomingMail retries in case of locked error.", async function () {
 		let throwError = true
-		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder)).thenResolve(null)
+		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, false, mailDetails)).thenResolve(null)
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			mailId: mail._id,
