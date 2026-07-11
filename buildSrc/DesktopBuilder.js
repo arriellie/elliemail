@@ -128,9 +128,10 @@ export async function buildDesktop({
 		},
 	})
 	console.log("Move output to ", outDir)
+	const installersDir = path.join(distDir, "/installers")
 	await Promise.all(
 		fs
-			.readdirSync(path.join(distDir, "/installers"))
+			.readdirSync(installersDir)
 			.filter((file) => {
 				const matches =
 					file.startsWith(content.name) || file.endsWith(".yml") || file.endsWith("-unpacked") || (unpacked && file.startsWith("mac-"))
@@ -139,10 +140,10 @@ export async function buildDesktop({
 				}
 				return matches
 			})
-			.map((file) => fs.promises.rename(path.join(distDir, "/installers/", file), path.join(outDir, file))),
+			.map((file) => fs.promises.rename(path.join(installersDir, file), path.join(outDir, file))),
 	)
 	await Promise.all([
-		fs.promises.rm(path.join(distDir, "/installers/"), { recursive: true, force: true }),
+		fs.promises.rm(installersDir, { recursive: true, force: true }),
 		fs.promises.rm(path.join(distDir, "/node_modules/"), { recursive: true, force: true }),
 		fs.promises.rm(path.join(distDir, "/package.json")),
 	])
