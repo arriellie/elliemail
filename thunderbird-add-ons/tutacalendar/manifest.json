@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
-	"name": "Tuta Calendar",
-	"description": "Spaces toolbar quick access Thunderbird Add-on for Tuta Calendar",
+	"name": "Ellie Calendar",
+	"description": "Spaces toolbar quick access Thunderbird Add-on for Ellie Calendar",
 	"version": "1.0.0",
 	"author": "Tutao GmbH",
 	"browser_specific_settings": {
