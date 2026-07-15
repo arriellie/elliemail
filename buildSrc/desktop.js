@@ -152,6 +152,7 @@ async function buildDesktopClient(
 		architecture,
 		app,
 		updateUrl: customDesktopRelease ? "" : updateUrlObject.toString(),
+		enableUpstreamDesktopReleaseTracking: customDesktopRelease,
 		nameSuffix: "",
 		notarize: !customDesktopRelease,
 		outDir: outDir,

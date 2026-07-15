@@ -28,6 +28,16 @@ export class SettingsFacadeReceiveDispatcher {
 			case "getUpdateInfo": {
 				return this.facade.getUpdateInfo()
 			}
+			case "getUpstreamDesktopReleaseInfo": {
+				return this.facade.getUpstreamDesktopReleaseInfo()
+			}
+			case "suppressUpstreamDesktopReleaseNotifications": {
+				const version: string = arg[0]
+				return this.facade.suppressUpstreamDesktopReleaseNotifications(version)
+			}
+			case "openUpstreamDesktopReleaseInstructions": {
+				return this.facade.openUpstreamDesktopReleaseInstructions()
+			}
 			case "registerMailto": {
 				return this.facade.registerMailto()
 			}

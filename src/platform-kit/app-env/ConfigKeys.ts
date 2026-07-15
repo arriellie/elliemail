@@ -19,6 +19,7 @@ export enum DesktopConfigKey {
 	webConfigLocation = "webConfigLocation",
 	extendedNotificationMode = "extendedNotificationMode",
 	mailboxExportState = "mailboxExportState",
+	suppressedUpstreamDesktopReleaseVersion = "suppressedUpstreamDesktopReleaseVersion",
 }
 
 export enum DesktopConfigEncKey {
@@ -36,4 +37,5 @@ export enum BuildConfigKey {
 	fileManagerTimeout = "fileManagerTimeout",
 	pubKeys = "pubKeys",
 	updateUrl = "updateUrl",
+	enableUpstreamDesktopReleaseTracking = "enableUpstreamDesktopReleaseTracking",
 }
