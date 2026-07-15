@@ -11,14 +11,14 @@ repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || die "run this from ins
 cd "$repo_root"
 
 latest_release() {
-	git tag --list 'tutanota-release-*' --sort=-version:refname |
-		grep -E '^tutanota-release-[0-9]+\.[0-9]+\.[0-9]+$' |
+	git tag --list 'tutanota-desktop-release-*' --sort=-version:refname |
+		grep -E '^tutanota-desktop-release-[0-9]+\.[0-9]+\.[0-9]+$' |
 		sed -n '1p'
 }
 
 next_ellie_release_tag() {
 	release=$1
-	version=${release#tutanota-release-}
+	version=${release#tutanota-desktop-release-}
 	latest_revision=$(git tag --list "ellie-release-$version-r*" |
 		sed -n "s/^ellie-release-$version-r\([0-9][0-9]*\)$/\1/p" |
 		sort -n |
