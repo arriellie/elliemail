@@ -25,6 +25,18 @@
 			"arg": [],
 			"ret": "UpdateInfo?"
 		},
+		"getUpstreamDesktopReleaseInfo": {
+			"arg": [],
+			"ret": "UpstreamDesktopReleaseInfo?"
+		},
+		"suppressUpstreamDesktopReleaseNotifications": {
+			"arg": [{ "version": "string" }],
+			"ret": "void"
+		},
+		"openUpstreamDesktopReleaseInstructions": {
+			"arg": [],
+			"ret": "void"
+		},
 		"registerMailto": {
 			"arg": [],
 			"ret": "void"

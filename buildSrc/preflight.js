@@ -8,6 +8,11 @@ const EMCC_BASELINE_VERSION = [3, 1, 59]
 const MIN_CARGO_VERSION = [1, 80, 0]
 const args = new Set(process.argv.slice(2))
 
+if (process.env.SKIP_PREFLIGHT === "1") {
+	console.log("✅ Preflight skipped (SKIP_PREFLIGHT=1)")
+	process.exit(0)
+}
+
 function getBinaryName(command) {
 	return process.platform === "win32" ? `${command}.exe` : command
 }
