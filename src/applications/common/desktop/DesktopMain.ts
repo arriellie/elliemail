@@ -6,6 +6,7 @@ import { DesktopUtils } from "./DesktopUtils"
 import { setupAssetProtocol, WindowManager } from "./DesktopWindowManager"
 import { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { ElectronUpdater } from "./ElectronUpdater.js"
+import { UpstreamDesktopReleaseTracker } from "./UpstreamDesktopReleaseTracker.js"
 import { Socketeer } from "./Socketeer"
 import { DesktopAlarmStorage } from "./sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "./sse/DesktopAlarmScheduler"
@@ -120,6 +121,7 @@ type Components = {
 	readonly notifier: DesktopNotifier
 	readonly sock: Socketeer
 	readonly updater: ElectronUpdater
+	readonly upstreamDesktopReleaseTracker: UpstreamDesktopReleaseTracker
 	readonly integrator: DesktopIntegrator
 	readonly tray: DesktopTray
 	readonly desktopThemeFacade: DesktopThemeFacade
@@ -238,6 +240,7 @@ async function createComponents(): Promise<Components> {
 	const sseStorage = new SseStorage(conf)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
+	const upstreamDesktopReleaseTracker = new UpstreamDesktopReleaseTracker(conf, notifier, app, appIcon, (url) => electron.shell.openExternal(url))
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(makeDbPath("credentials"), app)
 	const appPassHandler = new AppPassHandler(desktopCrypto, conf, loadArgon2(), lang, async () => {
@@ -358,7 +361,7 @@ async function createComponents(): Promise<Components> {
 		msg: desktopUtils.getIconByName("msg.png"),
 	}
 	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage, sseStorage, nativeInstancePipeline)
-	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
+	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, upstreamDesktopReleaseTracker, lang)
 	const desktopImportFacade = new DesktopMailImportFacade(electron, notifier, lang)
 
 	const dispatcherFactory: DispatcherFactory = (window: ApplicationWindow) => {
@@ -448,6 +451,7 @@ async function createComponents(): Promise<Components> {
 		sock,
 		notifier,
 		updater,
+		upstreamDesktopReleaseTracker,
 		integrator,
 		tray,
 		desktopThemeFacade: themeFacade,
@@ -497,7 +501,7 @@ async function onAppReady(components: Components) {
 }
 
 async function main(components: Components) {
-	const { tray, notifier, sock, wm, updater, integrator, desktopThemeFacade } = components
+	const { tray, notifier, sock, wm, updater, upstreamDesktopReleaseTracker, integrator, desktopThemeFacade } = components
 	tray.update(notifier)
 
 	desktopThemeFacade.init()
@@ -516,6 +520,7 @@ async function main(components: Components) {
 	})
 	notifier.start(2000)
 	updater.start()
+	upstreamDesktopReleaseTracker.start()
 	integrator.runIntegration(wm)
 	await desktopUtils.handleMailto(components.wm)
 }
