@@ -685,6 +685,7 @@ class MailLocator implements CommonLocator {
 			logins: this.logins,
 			newsModel: this.newsModel,
 			desktopSystemFacade: this.desktopSystemFacade,
+			desktopSettingsFacade: EnvProvider.get().isDesktop() ? this.desktopSettingsFacade : null,
 			isPartnerEnabled: isPartnerEnabled(this.logins),
 		})
 	}

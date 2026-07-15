@@ -1,9 +1,10 @@
-import { IntegrationInfo, SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { IntegrationInfo, SettingsFacade, UpstreamDesktopReleaseInfo } from "@tutao/native-bridge/generatedIpc/types"
 import { DesktopConfig } from "./DesktopConfig.js"
 import { DesktopConfigKey } from "../../../../platform-kit/app-env"
 import { DesktopUtils } from "../DesktopUtils.js"
 import { DesktopIntegrator } from "../integration/DesktopIntegrator.js"
 import { ElectronUpdater } from "../ElectronUpdater.js"
+import { UpstreamDesktopReleaseTracker } from "../UpstreamDesktopReleaseTracker.js"
 import * as electron from "electron"
 import { UpdateInfo } from "electron-updater"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel.js"
@@ -14,6 +15,7 @@ export class DesktopSettingsFacade implements SettingsFacade {
 		private readonly utils: DesktopUtils,
 		private readonly integrator: DesktopIntegrator,
 		private readonly updater: ElectronUpdater | null,
+		private readonly upstreamDesktopReleaseTracker: UpstreamDesktopReleaseTracker,
 		private readonly lang: LanguageViewModel,
 	) {}
 
@@ -69,6 +71,19 @@ export class DesktopSettingsFacade implements SettingsFacade {
 
 	async getUpdateInfo(): Promise<UpdateInfo | null> {
 		return this.updater!.updateInfo
+	}
+
+	async getUpstreamDesktopReleaseInfo(): Promise<UpstreamDesktopReleaseInfo | null> {
+		await this.upstreamDesktopReleaseTracker.refresh()
+		return this.upstreamDesktopReleaseTracker.status
+	}
+
+	async suppressUpstreamDesktopReleaseNotifications(version: string): Promise<void> {
+		await this.upstreamDesktopReleaseTracker.suppressNotifications(version)
+	}
+
+	async openUpstreamDesktopReleaseInstructions(): Promise<void> {
+		await this.upstreamDesktopReleaseTracker.openUpdateInstructions()
 	}
 
 	async integrateDesktop(): Promise<void> {
