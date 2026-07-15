@@ -2,6 +2,7 @@
 
 import { DesktopConfigKey } from "../types/DesktopConfigKey"
 import { UpdateInfo } from "../types/UpdateInfo"
+import { UpstreamDesktopReleaseInfo } from "../types/UpstreamDesktopReleaseInfo"
 import { IntegrationInfo } from "../types/IntegrationInfo"
 /**
  * Desktop preferences.
@@ -16,6 +17,12 @@ export interface SettingsFacade {
 	setBooleanConfigValue(name: DesktopConfigKey, value: boolean): Promise<void>
 
 	getUpdateInfo(): Promise<UpdateInfo | null>
+
+	getUpstreamDesktopReleaseInfo(): Promise<UpstreamDesktopReleaseInfo | null>
+
+	suppressUpstreamDesktopReleaseNotifications(version: string): Promise<void>
+
+	openUpstreamDesktopReleaseInstructions(): Promise<void>
 
 	registerMailto(): Promise<void>
 

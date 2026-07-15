@@ -300,6 +300,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/CommandExecutorTest.js")
 		await import("./desktop/notifications/WindowsNotificationFactoryTest.js")
 		await import("./desktop/ElectronUpdaterTest.js")
+		await import("./desktop/UpstreamDesktopReleaseTrackerTest.js")
 		await import("./desktop/PathUtilsTest.js")
 		await import("./desktop/SocketeerTest.js")
 		await import("./desktop/config/ConfigFileTest.js")
