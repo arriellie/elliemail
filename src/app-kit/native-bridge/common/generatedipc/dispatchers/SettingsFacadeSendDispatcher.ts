@@ -22,6 +22,15 @@ export class SettingsFacadeSendDispatcher implements SettingsFacade {
 	async getUpdateInfo(...args: Parameters<SettingsFacade["getUpdateInfo"]>) {
 		return this.transport.invokeNative("ipc", ["SettingsFacade", "getUpdateInfo", ...args])
 	}
+	async getUpstreamDesktopReleaseInfo(...args: Parameters<SettingsFacade["getUpstreamDesktopReleaseInfo"]>) {
+		return this.transport.invokeNative("ipc", ["SettingsFacade", "getUpstreamDesktopReleaseInfo", ...args])
+	}
+	async suppressUpstreamDesktopReleaseNotifications(...args: Parameters<SettingsFacade["suppressUpstreamDesktopReleaseNotifications"]>) {
+		return this.transport.invokeNative("ipc", ["SettingsFacade", "suppressUpstreamDesktopReleaseNotifications", ...args])
+	}
+	async openUpstreamDesktopReleaseInstructions(...args: Parameters<SettingsFacade["openUpstreamDesktopReleaseInstructions"]>) {
+		return this.transport.invokeNative("ipc", ["SettingsFacade", "openUpstreamDesktopReleaseInstructions", ...args])
+	}
 	async registerMailto(...args: Parameters<SettingsFacade["registerMailto"]>) {
 		return this.transport.invokeNative("ipc", ["SettingsFacade", "registerMailto", ...args])
 	}
