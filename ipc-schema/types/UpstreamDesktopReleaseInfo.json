@@ -1,0 +1,9 @@
+{
+	"name": "UpstreamDesktopReleaseInfo",
+	"type": "struct",
+	"doc": "A newer upstream Tuta desktop release detected by an Ellie custom build.",
+	"fields": {
+		"version": "string",
+		"notificationSuppressed": "boolean"
+	}
+}

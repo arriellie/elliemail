@@ -18,13 +18,25 @@ import {
  * @param p.app {"mail"|"calendar"}
  * @param p.version {string}
  * @param p.updateUrl {string}
+ * @param p.enableUpstreamDesktopReleaseTracking {boolean}
  * @param p.iconPath {string}
  * @param p.sign {boolean}
  * @param [p.notarize] {boolean}
  * @param [p.unpacked] {boolean}
  * @param p.architecture
  */
-export default async function generateTemplate({ app, nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, architecture }) {
+export default async function generateTemplate({
+	app,
+	nameSuffix,
+	version,
+	updateUrl,
+	enableUpstreamDesktopReleaseTracking,
+	iconPath,
+	sign,
+	notarize,
+	unpacked,
+	architecture,
+}) {
 	const appName = "elliemail-desktop" + nameSuffix
 	const appId = "io.arrie.elliemail" + nameSuffix
 	const variant = getStockAppVariantFromNameSuffix(nameSuffix)
@@ -191,6 +203,7 @@ export default async function generateTemplate({ app, nameSuffix, version, updat
 			maxSseConnectTimeoutInSeconds: 2400,
 			configMigrationFunction: "migrateClient",
 			updateUrl,
+			enableUpstreamDesktopReleaseTracking,
 			defaultDesktopConfig: {
 				/**
 				 * do not change defaultDesktopConfig

@@ -13,21 +13,93 @@ import { theme } from "../../../../ui/theme.js"
 import { showNewsDialog } from "../../misc/news/NewsDialog.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { NewsModel } from "../../misc/news/NewsModel.js"
-import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { DesktopSystemFacade, SettingsFacade, UpstreamDesktopReleaseInfo } from "@tutao/native-bridge/generatedIpc/types"
 import { styles } from "../../../../ui/styles.js"
-import { IconButton } from "../../../../ui/base/IconButton.js"
+import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { FeatureType, isBrowser, isIOSApp, UpgradePromptType } from "@tutao/app-env"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
 	newsModel: NewsModel
 	desktopSystemFacade: DesktopSystemFacade | null
+	desktopSettingsFacade: SettingsFacade | null
 	isPartnerEnabled: boolean
+}
+
+class UpstreamDesktopReleaseIndicator implements Component<{ desktopSettingsFacade: SettingsFacade }> {
+	private release: UpstreamDesktopReleaseInfo | null = null
+
+	oninit(vnode: Vnode<{ desktopSettingsFacade: SettingsFacade }>): void {
+		vnode.attrs.desktopSettingsFacade.getUpstreamDesktopReleaseInfo().then((release) => {
+			this.release = release
+			m.redraw()
+		})
+	}
+
+	view(vnode: Vnode<{ desktopSettingsFacade: SettingsFacade }>): Children {
+		const release = this.release
+		if (release == null) return null
+
+		const { desktopSettingsFacade } = vnode.attrs
+		const indicatorButtonAttrs: IconButtonAttrs = {
+			icon: Icons.BellFilled,
+			title: {
+				testId: "upstreamDesktopReleaseAvailable_label",
+				text: lang.get("upstreamDesktopReleaseAvailable_label", { "{version}": release.version }),
+			},
+			click: (event, dom) =>
+				createDropdown({
+					width: 320,
+					lazyButtons: () => [
+						{
+							info: lang.get("upstreamDesktopReleaseAvailable_label", { "{version}": release.version }),
+							center: false,
+							bold: true,
+						},
+						{
+							info: lang.get("upstreamDesktopReleaseAvailable_msg"),
+							center: false,
+							bold: false,
+						},
+						{
+							icon: Icons.QuestionmarkFilled,
+							label: "upstreamDesktopReleaseInstructions_action",
+							click: () => desktopSettingsFacade.openUpstreamDesktopReleaseInstructions(),
+						},
+						release.notificationSuppressed
+							? null
+							: {
+									icon: Icons.BellOutline,
+									label: "suppressUpstreamDesktopReleaseNotifications_action",
+									click: async () => {
+										await desktopSettingsFacade.suppressUpstreamDesktopReleaseNotifications(release.version)
+										this.release = { ...release, notificationSuppressed: true }
+										m.redraw()
+									},
+								},
+					],
+				})(event, dom),
+			colors: ButtonColor.DrawerNav,
+		}
+		return m(".news-button", [
+			m(IconButton, indicatorButtonAttrs),
+			m(CounterBadge, {
+				count: 1,
+				position: {
+					top: px(0),
+					right: px(3),
+				},
+				color: theme.on_primary,
+				background: theme.primary,
+			}),
+		])
+	}
 }
 
 export class DrawerMenu implements Component<DrawerMenuAttrs> {
 	view(vnode: Vnode<DrawerMenuAttrs>): Children {
-		const { logins, newsModel, desktopSystemFacade, isPartnerEnabled } = vnode.attrs
+		const { logins, newsModel, desktopSystemFacade, desktopSettingsFacade, isPartnerEnabled } = vnode.attrs
 		const liveNewsCount = newsModel.liveNewsIds.length
 
 		const isInternalUser = logins.isInternalUserLoggedIn()
@@ -46,6 +118,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 			},
 			[
 				m(".flex-grow"),
+				desktopSettingsFacade ? m(UpstreamDesktopReleaseIndicator, { desktopSettingsFacade }) : null,
 				isInternalUser && isLoggedIn
 					? m(".news-button", [
 							m(IconButton, {
