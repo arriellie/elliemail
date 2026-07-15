@@ -111,6 +111,7 @@ async function buildDesktopClient(
 		architecture,
 		app,
 		updateUrl: customDesktopRelease ? "" : updateUrl,
+		enableUpstreamDesktopReleaseTracking: customDesktopRelease,
 		nameSuffix: "",
 		notarize: !customDesktopRelease,
 		outDir: outDir,

@@ -21,4 +21,6 @@ runs:
         key: ${{ env.node_sqlcipher_path }}
     - name: install packages
       shell: bash
+      env:
+        SKIP_PREFLIGHT: "1"
       run: npm ci
