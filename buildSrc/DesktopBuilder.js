@@ -25,9 +25,11 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @type {object}
  * @property projectRoot {string} directory this was called from
  * @property version {string} application version that gets built
+ * @property app {"mail"|"calendar"} application identity and branding
  * @property platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
  * @property architecture {ArchParam} the instruction set used in the built desktop binary
  * @property updateUrl {string | undefined} where the client should pull its updates from, if any
+ * @property enableUpstreamDesktopReleaseTracking {boolean}
  * @property nameSuffix {string} suffix used to distinguish test-, prod- or snapshot builds on the same machine
  * @property notarize {boolean} for the macOS notarization feature
  * @property [outDir] {string} where copy the finished artifacts
@@ -41,9 +43,11 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
 export async function buildDesktop({
 	projectRoot,
 	version,
+	app,
 	platform,
 	architecture,
 	updateUrl,
+	enableUpstreamDesktopReleaseTracking,
 	nameSuffix,
 	notarize,
 	outDir,
@@ -74,9 +78,11 @@ export async function buildDesktop({
 	// Currently we have sqlite which avoids building itself if possible and only build
 	console.log("Updating electron-builder config...")
 	const content = await generatePackageJson({
+		app,
 		nameSuffix,
 		version,
 		updateUrl,
+		enableUpstreamDesktopReleaseTracking,
 		iconPath: path.join(projectRoot, "/resources/desktop-icons/logo-solo-red.png" + (platform === "win32" ? ".ico" : "")),
 		notarize,
 		unpacked,
@@ -135,8 +141,7 @@ export async function buildDesktop({
 		fs
 			.readdirSync(installersDir)
 			.filter((file) => {
-				const matches =
-					file.startsWith(content.name) || file.endsWith(".yml") || file.endsWith("-unpacked") || (unpacked && file.startsWith("mac-"))
+				const matches = file.startsWith(content.name) || file.endsWith(".yml") || file.endsWith("-unpacked") || (unpacked && file.startsWith("mac-"))
 				if (!matches) {
 					console.log("\tSkipping", file)
 				}

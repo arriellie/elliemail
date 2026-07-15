@@ -51,7 +51,7 @@ o.spec("DesktopConfigMigrator", function () {
 			defaultDownloadPath: null,
 			enableAutoUpdate: true,
 			runAsTrayApp: true,
-			desktopConfigVersion: 10,
+			desktopConfigVersion: 11,
 			showAutoUpdateOption: true,
 			spellcheck: "de-DE",
 			offlineStorageEnabled: false,
@@ -65,6 +65,7 @@ o.spec("DesktopConfigMigrator", function () {
 			appPassSalt: null,
 			[DesktopConfigKey.mailboxExportState]: {},
 			scheduledAlarms: [],
+			suppressedUpstreamDesktopReleaseVersion: null,
 		}
 
 		o(await migrator.applyMigrations("migrateClient", oldConfig)).deepEquals(requiredResult)
@@ -77,7 +78,7 @@ o.spec("DesktopConfigMigrator", function () {
 		const requiredResult = {
 			appPassSalt: null,
 			runAsTrayApp: true,
-			desktopConfigVersion: 10,
+			desktopConfigVersion: 11,
 			showAutoUpdateOption: true,
 			mailExportMode: "eml",
 			spellcheck: "",
