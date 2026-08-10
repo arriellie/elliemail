@@ -116,6 +116,10 @@ export default async function generateTemplate({
 			warningsAsErrors: true,
 		},
 		mac: {
+			// Electron fuses modify the pre-signed Electron Framework binary. When
+			// there is no release identity, explicitly ad-hoc sign the complete app
+			// afterward so macOS does not kill it for an invalid nested signature.
+			identity: sign ? undefined : "-",
 			hardenedRuntime: true,
 			type: "distribution",
 			gatekeeperAssess: false,
