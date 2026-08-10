@@ -48,7 +48,8 @@ Start from a clean `master` that exactly matches `origin/master`:
 
 The helper fetches remotes, creates `backup/master-before-upstream-rebase-<timestamp>`, rebases the Ellie commit stack,
 and runs the required environment check, submodule sync/update, locked dependency installation, unpacked custom desktop
-release build, mail type check, and test suite. It then requires `npm run check:preflight` and a manual smoke test of
+release build, platform artifact verification, mail type check, and test suite. On macOS, artifact verification includes
+strict validation of every nested code signature. It then requires `npm run check:preflight` and a manual smoke test of
 login, mailbox loading, and basic send/receive behavior.
 
 After the smoke test, it fetches again and stops if a newer upstream release appeared. When you type `publish`, it
@@ -69,3 +70,27 @@ gate explicitly:
 Use `git rebase --abort` to abandon an upgrade. Keep the generated safety branch until the Ellie release is verified,
 then delete it deliberately. Repository-local `rerere.enabled` and `rerere.autoupdate` are enabled to reuse recurring
 conflict resolutions.
+
+## macOS local signing
+
+Electron's fuse step modifies the already-signed Electron Framework binary. A local build must therefore receive a new
+signature after the fuses are changed or macOS will terminate it at launch with `SIGKILL (Code Signature Invalid)`.
+
+The generated Electron Builder configuration handles this directly: when a release signing identity is unavailable,
+`buildSrc/electron-package-json-template.js` sets `mac.identity` to `-`, Electron Builder's ad-hoc signing identity. The
+normal maintenance build command needs no extra flag or separate signing command:
+
+```sh
+node desktop release --custom-desktop-release --unpacked
+```
+
+The update helper immediately runs `codesign --verify --deep --strict` on the resulting app and stops before the remaining
+checks if any nested signature is invalid. An ad-hoc-signed build is suitable for local installation and smoke testing,
+but it is not Developer ID signed or notarized and must not be treated as a distributable macOS release.
+
+If an older local artifact fails to open with the code-signature error, rebuild it with the command above and replace the
+copy in `/Applications`. Verify the installed copy manually with:
+
+```sh
+codesign --verify --deep --strict --verbose=2 "/Applications/Ellie Mail.app"
+```
