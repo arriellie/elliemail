@@ -34,6 +34,25 @@ use_required_node() {
 	fi
 }
 
+verify_desktop_artifact() {
+	root=$1
+	case "$(uname -s)" in
+		Darwin)
+			app_path=$(find "$root/artifacts/desktop" -type d -name '*.app' -print 2>/dev/null | sed -n '1p')
+			[ -n "$app_path" ] || die "could not find the unpacked macOS application"
+			codesign --verify --deep --strict --verbose=2 "$app_path" ||
+				die "the macOS artifact has an invalid code signature and will not launch"
+			printf 'Verified macOS artifact signatures: %s\n' "$app_path"
+			;;
+		Linux)
+			app_path=$(find "$root/artifacts/desktop" -type f -perm -111 -print 2>/dev/null | sed -n '1p')
+			[ -n "$app_path" ] || die "could not find an executable unpacked Linux application"
+			printf 'Verified executable Linux artifact: %s\n' "$app_path"
+			;;
+		*) die "desktop artifact verification is not implemented for $(uname -s)" ;;
+	esac
+}
+
 run_automated_checks() {
 	root=$1
 	cd "$root"
@@ -43,6 +62,7 @@ run_automated_checks() {
 	git submodule update --init --recursive
 	npm ci
 	node desktop release --custom-desktop-release --unpacked
+	verify_desktop_artifact "$root"
 	npm run mail:types
 	npm test
 }
