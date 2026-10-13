@@ -110,12 +110,18 @@ Git-local log and inspect it on failure to avoid loading unrelated formatting ou
 Run the maintenance regression tests without installing dependencies:
 
 ```sh
-node --test fork-maintenance/validation.test.mjs fork-maintenance/workflow.test.mjs
+node --test fork-maintenance/validation.test.mjs fork-maintenance/workflow.test.mjs fork-maintenance/postinstall.test.mjs
 ```
 
 After `npm ci`, run `node --test fork-maintenance/desktop-branding.test.mjs` for the packaging regressions. The release
 helper runs all maintenance tests automatically after dependency installation. Artifact verification also checks that
 the macOS directory, display name and executable are all `Ellie Mail`; a signature-valid but misnamed app fails validation.
+
+Release installs use `ELLIE_PRESERVE_VENDORED_LIBS=1 npm ci`. The upstream postinstall normally rebundles the audited
+`libs/` snapshots; CommonJS auto/debug wrapping can change that output even with identical dependencies. Release
+validation preserves the reviewed libraries in Git while still running engine checks, dependency install scripts,
+dependency-version recording, submodule setup and the Nextcloud install. For an intentional dependency change, use
+ordinary `npm ci`, review and commit the updated libraries, then validate the resulting commit through the release helper.
 
 To validate and publish a rebuilt or otherwise already-rebased `master` without starting another rebase, use the same
 gate explicitly:
