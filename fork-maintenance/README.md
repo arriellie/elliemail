@@ -104,11 +104,18 @@ signature checks always run. Omit `--resume` to force a fresh install, build and
 This avoids replaying lengthy build/test logs into agent context and avoids a second full build between preparation
 and publication. Persistent npm/Rust/compiler caches remain available to the underlying tools.
 
+The inherited commit hook formats/lints the full iOS tree even for maintenance-only commits. Capture its output in a
+Git-local log and inspect it on failure to avoid loading unrelated formatting output into agent context.
+
 Run the maintenance regression tests without installing dependencies:
 
 ```sh
-node --test fork-maintenance/*.test.mjs
+node --test fork-maintenance/validation.test.mjs fork-maintenance/workflow.test.mjs
 ```
+
+After `npm ci`, run `node --test fork-maintenance/desktop-branding.test.mjs` for the packaging regressions. The release
+helper runs all maintenance tests automatically after dependency installation. Artifact verification also checks that
+the macOS directory, display name and executable are all `Ellie Mail`; a signature-valid but misnamed app fails validation.
 
 To validate and publish a rebuilt or otherwise already-rebased `master` without starting another rebase, use the same
 gate explicitly:

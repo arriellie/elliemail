@@ -22,6 +22,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
 /**
  * @param dirname directory this was called from
  * @param version application version that gets built
+ * @param app {"mail"|"calendar"} application identity and branding
  * @param platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
  * @param architecture {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
  * @param updateUrl where the client should pull its updates from, if any
@@ -35,6 +36,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
 export async function buildDesktop({
 	dirname,
 	version,
+	app,
 	platform,
 	architecture,
 	updateUrl,
@@ -68,6 +70,7 @@ export async function buildDesktop({
 	// Currently we have sqlite which avoids building itself if possible and only build
 	console.log("Updating electron-builder config...")
 	const content = await generatePackageJson({
+		app,
 		nameSuffix,
 		version,
 		updateUrl,
