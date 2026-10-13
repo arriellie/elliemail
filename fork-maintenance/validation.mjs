@@ -14,7 +14,7 @@ import {
 	rmSync,
 	writeFileSync,
 } from "node:fs"
-import { join, resolve } from "node:path"
+import { dirname, join, resolve } from "node:path"
 import { spawn, spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
 
@@ -64,11 +64,25 @@ function artifact(root) {
 	if (!existsSync(directory)) throw new Error("Unpacked desktop artifact is missing")
 	if (process.platform === "darwin") {
 		const matches = []
-		for (const folder of readdirSync(directory).filter((name) => name.startsWith("mac-"))) {
+		for (const folder of readdirSync(directory).filter((name) => name === "mac" || name.startsWith("mac-"))) {
 			for (const app of readdirSync(join(directory, folder)).filter((name) => name.endsWith(".app")))
 				matches.push(join(directory, folder, app))
 		}
 		if (matches.length !== 1) throw new Error(`Expected one unpacked macOS app; found ${matches.length}`)
+		const expectedName = "Ellie Mail"
+		const expectedPath = join(dirname(matches[0]), `${expectedName}.app`)
+		if (matches[0] !== expectedPath)
+			throw new Error(`Incorrect app bundle name: ${matches[0]}; expected ${expectedPath}`)
+		for (const key of ["CFBundleDisplayName", "CFBundleExecutable"]) {
+			const name = command(
+				"/usr/libexec/PlistBuddy",
+				["-c", `Print :${key}`, join(expectedPath, "Contents/Info.plist")],
+				root,
+			)
+			if (name !== expectedName) throw new Error(`Incorrect ${key}: ${name}; expected ${expectedName}`)
+		}
+		if (!existsSync(join(expectedPath, "Contents/MacOS", expectedName)))
+			throw new Error("Branded macOS executable is missing")
 		return matches[0]
 	}
 	if (process.platform === "linux") {
@@ -153,6 +167,16 @@ async function main() {
 			["submodule-sync", "git", ["submodule", "sync", "--recursive"]],
 			["submodule-update", "git", ["submodule", "update", "--init", "--recursive"]],
 			["dependencies", "npm", ["ci"]],
+			[
+				"maintenance-tests",
+				process.execPath,
+				[
+					"--test",
+					"fork-maintenance/validation.test.mjs",
+					"fork-maintenance/workflow.test.mjs",
+					"fork-maintenance/desktop-branding.test.mjs",
+				],
+			],
 			["desktop-build", process.execPath, ["desktop", "release", "--custom-desktop-release", "--unpacked"]],
 			["mail-types", "npm", ["run", "mail:types"]],
 			["tests", "npm", ["test"]],
