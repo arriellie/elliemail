@@ -166,7 +166,7 @@ async function main() {
 		const stages = [
 			["submodule-sync", "git", ["submodule", "sync", "--recursive"]],
 			["submodule-update", "git", ["submodule", "update", "--init", "--recursive"]],
-			["dependencies", "npm", ["ci"]],
+			["dependencies", "env", ["ELLIE_PRESERVE_VENDORED_LIBS=1", "npm", "ci"]],
 			[
 				"maintenance-tests",
 				process.execPath,
@@ -175,6 +175,7 @@ async function main() {
 					"fork-maintenance/validation.test.mjs",
 					"fork-maintenance/workflow.test.mjs",
 					"fork-maintenance/desktop-branding.test.mjs",
+					"fork-maintenance/postinstall.test.mjs",
 				],
 			],
 			["desktop-build", process.execPath, ["desktop", "release", "--custom-desktop-release", "--unpacked"]],

@@ -22,6 +22,14 @@ function dumpResolvedModuleVersions() {
 }
 
 async function tryToUpdateLibs() {
+	// Release validation must build the audited library snapshots in Git. The
+	// CommonJS bundler's auto/debug wrapping can produce different output even
+	// with an unchanged lockfile; regenerating audited source belongs in a
+	// separate dependency-update commit, not a release install.
+	if (process.env.ELLIE_PRESERVE_VENDORED_LIBS === "1") {
+		console.log("Using audited vendored libraries from Git (ELLIE_PRESERVE_VENDORED_LIBS=1)")
+		return
+	}
 	try {
 		await import("rollup")
 	} catch (e) {
