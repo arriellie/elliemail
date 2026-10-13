@@ -36,6 +36,13 @@ and uses `--force-with-lease`. It bypasses only the inherited upstream pre-push 
 
 ## Upstream release workflow
 
+For an agent-assisted update, read this file and use the helpers below. Start with the cheap release check; inspect
+individual stage logs only when a check fails. Keep the published tag and backup branch in the final update report.
+
+```sh
+./fork-maintenance/update-from-upstream-release.sh --check
+```
+
 Subscribe to upstream release notifications and run the update for every published upstream desktop production tag. The helper
 selects the highest three-part `tutanota-desktop-release-*` tag; legacy and timestamp-style tags and unreleased
 `upstream/master` are ignored.
@@ -46,10 +53,24 @@ Start from a clean `master` that exactly matches `origin/master`:
 ./fork-maintenance/update-from-upstream-release.sh
 ```
 
-The helper fetches remotes, creates `backup/master-before-upstream-rebase-<timestamp>`, rebases the Ellie commit stack,
+To prepare a build for review without waiting at an interactive prompt, use `--validate-only`. Once the build passes,
+perform the login/mailbox/send/receive smoke test, then finish with `--resume`:
+
+```sh
+./fork-maintenance/update-from-upstream-release.sh --validate-only
+# Test artifacts/desktop/mac-arm64/Ellie Mail.app (macOS arm64).
+./fork-maintenance/update-from-upstream-release.sh --finish <upstream-release-tag> --resume
+```
+
+The finish command still asks for the smoke-test result and `publish`. An agent must obtain the actual smoke-test
+result from the user when it cannot test an authenticated mailbox itself; a successful launch alone is insufficient.
+No-op updates exit without reinstalling or rebuilding an already-published current release.
+
+The helper fetches only production desktop tags and the fork's master/release tags, creates
+`backup/master-before-upstream-rebase-<timestamp>`, rebases the Ellie commit stack,
 and runs the required environment check, submodule sync/update, locked dependency installation, unpacked custom desktop
 release build, platform artifact verification, mail type check, and test suite. On macOS, artifact verification includes
-strict validation of every nested code signature. It then requires `npm run check:preflight` and a manual smoke test of
+strict validation of every nested code signature. It requires `npm run check:preflight` before costly checks and a manual smoke test of
 login, mailbox loading, and basic send/receive behavior.
 
 After the smoke test, it fetches again and stops if a newer upstream release appeared. When you type `publish`, it
@@ -58,6 +79,35 @@ rebase stops for conflicts, resolve them, use `git rebase --continue`, and resum
 
 ```sh
 ./fork-maintenance/update-from-upstream-release.sh --finish <upstream-release-tag>
+```
+
+The lease is captured before rebasing and retained across finish commands. A remote master change during validation
+stops publication instead of refreshing the lease and overwriting the change. Inspect and reconcile that change before
+deliberately removing the local `publication-lease` file and starting a new `--release` validation.
+
+### Logs and safe resume
+
+Each stage prints a concise status and elapsed time; full stdout/stderr goes to the repository-local Git directory
+under `fork-maintenance/`. Failed stages print the last 60 log lines. Locate the directory with:
+
+```sh
+git rev-parse --git-path fork-maintenance
+```
+
+`--resume` reuses an ordered prefix of successful stages only when the checkpoint matches the commit, tool versions,
+environment, and file metadata for source, dependencies, submodules, and generated outputs. It ignores Git internals
+and compiler caches. This is a conservative local resume guard, not a portable cache or an integrity attestation.
+Any mismatch restarts validation; failed stages never receive a passing checkpoint. Environment, preflight and macOS
+signature checks always run. Omit `--resume` to force a fresh install, build and full test run. A killed process may leave
+`validation.lock`; remove it only after checking that no validation/build process is still running.
+
+This avoids replaying lengthy build/test logs into agent context and avoids a second full build between preparation
+and publication. Persistent npm/Rust/compiler caches remain available to the underlying tools.
+
+Run the maintenance regression tests without installing dependencies:
+
+```sh
+node --test fork-maintenance/*.test.mjs
 ```
 
 To validate and publish a rebuilt or otherwise already-rebased `master` without starting another rebase, use the same
