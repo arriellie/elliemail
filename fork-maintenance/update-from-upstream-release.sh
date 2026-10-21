@@ -44,7 +44,13 @@ capture_lease() {
 	if [ -f "$lease_file" ] && [ "$(sed -n '1p' "$lease_file")" = "$release" ]; then
 		expected_origin=$(sed -n '2p' "$lease_file")
 	else
-		[ "$mode" != finish ] || die "saved publication lease missing; start with --release $release"
+		if [ "$mode" = finish ]; then
+			# A push may already have succeeded before GitHub publication/installation failed.
+			published=$(git tag --points-at HEAD --list "ellie-release-${release#tutanota-desktop-release-}-r*" | sed -n '1p')
+			[ -n "$published" ] && [ "$(git rev-parse origin/master)" = "$(git rev-parse HEAD)" ] &&
+				git ls-remote --exit-code --refs origin "refs/tags/$published" >/dev/null ||
+				die "saved publication lease missing; start with --release $release"
+		fi
 		expected_origin=$(git rev-parse origin/master)
 		printf '%s\n%s\n' "$release" "$expected_origin" > "$lease_file"
 	fi
