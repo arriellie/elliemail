@@ -25,6 +25,23 @@ function command(command, args, root) {
 	return result.stdout.trim()
 }
 
+// Agent invocation identifiers do not affect build output and change on every tool call.
+export function environmentIdentity(environment) {
+	return Object.entries(environment)
+		.filter(
+			([key]) =>
+				!["_", "SHLVL", "PWD", "OLDPWD", "FNM_MULTISHELL_PATH"].includes(key) &&
+				!/^(CODEX_|BROWSER_USE_|NODE_REPL_)/.test(key),
+		)
+		.map(([key, value]) => [
+			key,
+			key === "PATH" && environment.FNM_MULTISHELL_PATH
+				? value.replaceAll(environment.FNM_MULTISHELL_PATH, "<fnm-shell>")
+				: value,
+		])
+		.sort()
+}
+
 // Include ignored dependencies and generated outputs, but exclude compiler caches
 // and Git internals. This is a local resume guard, not a release attestation.
 export function fingerprint(root, identity) {
@@ -145,15 +162,7 @@ async function main() {
 			process.version,
 			process.platform,
 			process.arch,
-			...Object.entries(process.env)
-				.filter(([key]) => !["_", "SHLVL", "PWD", "OLDPWD", "FNM_MULTISHELL_PATH"].includes(key))
-				.map(([key, value]) => [
-					key,
-					key === "PATH" && process.env.FNM_MULTISHELL_PATH
-						? value.replaceAll(process.env.FNM_MULTISHELL_PATH, "<fnm-shell>")
-						: value,
-				])
-				.sort(),
+			...environmentIdentity(process.env),
 			...["npm", "emcc", "wasm2js", "cargo"].map((tool) => command(tool, ["--version"], root)),
 		]
 		const receipt = join(directory, "validation.json")
