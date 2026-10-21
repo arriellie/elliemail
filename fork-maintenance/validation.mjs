@@ -59,7 +59,7 @@ export function reusableStages(state, currentFingerprint, stageNames, resume) {
 	return completed.every((name, index) => name === stageNames[index]) ? completed : []
 }
 
-function artifact(root) {
+export function artifact(root) {
 	const directory = join(root, "artifacts/desktop")
 	if (!existsSync(directory)) throw new Error("Unpacked desktop artifact is missing")
 	if (process.platform === "darwin") {
@@ -176,6 +176,7 @@ async function main() {
 					"fork-maintenance/workflow.test.mjs",
 					"fork-maintenance/desktop-branding.test.mjs",
 					"fork-maintenance/postinstall.test.mjs",
+					"fork-maintenance/finalize-release.test.mjs",
 				],
 			],
 			["desktop-build", process.execPath, ["desktop", "release", "--custom-desktop-release", "--unpacked"]],

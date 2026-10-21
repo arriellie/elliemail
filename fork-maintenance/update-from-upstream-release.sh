@@ -13,7 +13,7 @@ cd "$repo_root"
 mode=update
 release=
 validate_only=false
-resume=false
+resume=true
 while [ "$#" -gt 0 ]; do
 	case "$1" in
 		--finish|--release)
@@ -22,7 +22,8 @@ while [ "$#" -gt 0 ]; do
 		--check) [ "$mode" = update ] || die "specify one mode"; mode=check; shift ;;
 		--validate-only) validate_only=true; shift ;;
 		--resume) resume=true; shift ;;
-		*) die "usage: $0 [--check|--finish TAG|--release TAG] [--validate-only] [--resume]" ;;
+		--fresh) resume=false; shift ;;
+		*) die "usage: $0 [--check|--finish TAG|--release TAG] [--validate-only] [--resume|--fresh]" ;;
 	esac
 done
 
@@ -47,7 +48,18 @@ capture_lease() {
 		expected_origin=$(git rev-parse origin/master)
 		printf '%s\n%s\n' "$release" "$expected_origin" > "$lease_file"
 	fi
-	[ "$(git rev-parse origin/master)" = "$expected_origin" ] || die "origin/master changed since this update started; inspect remote changes before restarting"
+	if [ "$(git rev-parse origin/master)" != "$expected_origin" ]; then
+		# Recover a crash just after our atomic push, before removing the old lease.
+		pending="$state_dir/pending-publication"
+		if [ -f "$pending" ] && [ "$(sed -n '1p' "$pending")" = "$(git rev-parse HEAD)" ] &&
+			[ "$(git rev-parse origin/master)" = "$(git rev-parse HEAD)" ] &&
+			git ls-remote --exit-code --refs origin "refs/tags/$(sed -n '2p' "$pending")" >/dev/null; then
+			expected_origin=$(git rev-parse origin/master)
+			printf '%s\n%s\n' "$release" "$expected_origin" > "$lease_file"
+		else
+			die "origin/master changed since this update started; inspect remote changes before restarting"
+		fi
+	fi
 }
 
 latest_release() {
@@ -68,6 +80,16 @@ next_ellie_release_tag() {
 }
 
 use_required_node() {
+	# This fixed local path contains no executable shell configuration.
+	signing_dir="$HOME/Library/Application Support/Ellie Mail Signing"
+	if [ "$(uname -s)" = Darwin ] && [ -f "$signing_dir/identity.sha1" ] && [ -z "${ELLIE_MAC_SIGNING_IDENTITY:-}" ]; then
+		ELLIE_MAC_SIGNING_IDENTITY=$(cat "$signing_dir/identity.sha1")
+		CSC_KEYCHAIN="$signing_dir/signing.keychain-db"
+		export ELLIE_MAC_SIGNING_IDENTITY CSC_KEYCHAIN
+		security unlock-keychain -p "$(cat "$signing_dir/keychain-password")" "$CSC_KEYCHAIN"
+	fi
+	if [ "${node_ready:-false}" = true ]; then return; fi
+	node_ready=true
 	if command -v fnm >/dev/null 2>&1 && [ -f .nvmrc ]; then
 		eval "$(fnm env --shell bash)"
 		fnm use --install-if-missing "$(cat .nvmrc)"
@@ -85,28 +107,9 @@ run_automated_checks() {
 	fi
 }
 
-run_manual_check() {
-	root=$1
-	label=$2
-	case "$(uname -s)" in
-		Darwin)
-			app_path=$(find "$root/artifacts/desktop" -type d -name '*.app' -print 2>/dev/null | sed -n '1p')
-			[ -n "$app_path" ] || die "could not find the unpacked macOS application"
-			launch_command="open -W '$app_path'"
-			;;
-		Linux)
-			app_path="$root/artifacts/desktop/linux-unpacked/elliemail-desktop"
-			[ -x "$app_path" ] || die "could not find the unpacked Linux application"
-			launch_command="'$app_path'"
-			;;
-		*) die "manual launch discovery is not implemented for $(uname -s)" ;;
-	esac
-	printf '\nLaunch the %s build with:\n' "$label"
-	printf '  %s\n' "$launch_command"
-	printf 'Confirm that login works, the mailbox loads, and basic send/receive behavior works.\n'
-	printf 'Type yes after the smoke test passes: '
-	read -r answer
-	[ "$answer" = "yes" ] || die "$label failed manual validation"
+finalize_release() {
+	use_required_node
+	node "$repo_root/fork-maintenance/finalize-release.mjs" "$1"
 }
 
 validate_and_publish() {
@@ -123,6 +126,8 @@ validate_and_publish() {
 	[ "$merge_commits" -eq 0 ] || die "master contains merge commits; rebuild the fork stack before publishing"
 	fetch_origin
 	capture_lease
+	use_required_node
+	node "$repo_root/fork-maintenance/finalize-release.mjs" --preflight
 	validated_head=$(git rev-parse HEAD)
 
 	printf '\nValidating the rebased fork...\n'
@@ -131,34 +136,41 @@ validate_and_publish() {
 	[ -z "$(git status --porcelain)" ] || die "validation changed source files; inspect them before publishing"
 	[ "$(git rev-parse HEAD)" = "$validated_head" ] || die "HEAD changed during validation"
 	if "$validate_only"; then
-		printf '\nReady for manual smoke testing. To resume without repeating unchanged checks:\n'
+		printf '\nAutomated validation passed. To publish and install:\n'
 		printf '  %s --finish %s --resume\n' "$repo_root/fork-maintenance/update-from-upstream-release.sh" "$release"
 		return
 	fi
-	run_manual_check "$repo_root" "rebased fork"
 
 	fetch_origin
 	fetch_releases
 	[ "$(latest_release)" = "$release" ] || die "a newer upstream release appeared; restart the update"
 	[ "$(git rev-parse origin/master)" = "$expected_origin" ] || die "origin/master changed during validation; publication stopped"
-	[ -z "$(git status --porcelain)" ] || die "source changed during the smoke test"
-	[ "$(git rev-parse HEAD)" = "$validated_head" ] || die "HEAD changed during the smoke test"
+	[ -z "$(git status --porcelain)" ] || die "source changed during validation"
+	[ "$(git rev-parse HEAD)" = "$validated_head" ] || die "HEAD changed during validation"
+	# A retry after a successful push must finish the same release, not create r2.
+	ellie_tag=$(git tag --points-at HEAD --list "ellie-release-${release#tutanota-desktop-release-}-r*" --sort=-version:refname | sed -n '1p')
+	if [ -n "$ellie_tag" ] && [ "$(git rev-parse origin/master)" = "$validated_head" ]; then
+		git ls-remote --exit-code --refs origin "refs/tags/$ellie_tag" >/dev/null || die "published release tag is missing on origin"
+		finalize_release "$ellie_tag"
+		rm -f "$lease_file" "$state_dir/pending-publication"
+		return
+	fi
 	ellie_tag=$(next_ellie_release_tag "$release")
 	git ls-remote --exit-code --refs origin "refs/tags/$ellie_tag" >/dev/null 2>&1 && die "release tag $ellie_tag already exists on origin"
 	[ -z "$(git tag --list "$ellie_tag")" ] || die "release tag $ellie_tag already exists locally"
-	printf 'Type publish to update origin/master and create %s: ' "$ellie_tag"
-	read -r answer
-	[ "$answer" = "publish" ] || die "publication cancelled"
 	# The repository's upstream-derived pre-push hook rejects every direct push to
 	# master. This fork intentionally publishes its tested rebase directly, so
 	# bypass only that local hook while retaining the exact remote-state lease.
 	git tag -a "$ellie_tag" -m "Ellie release $ellie_tag" -m "$(printf 'Upstream release: %s\nUpstream commit: %s\nDownstream commit: %s' "$release" "$release_commit" "$(git rev-parse HEAD)")"
+	printf '%s\n%s\n' "$validated_head" "$ellie_tag" > "$state_dir/pending-publication"
 	if ! git push --atomic --no-verify --force-with-lease="refs/heads/master:$expected_origin" origin master "refs/tags/$ellie_tag"; then
 		git tag -d "$ellie_tag"
 		die "atomic publication failed; the saved lease and validation receipt are retained"
 	fi
 	rm -f "$lease_file"
-	printf 'Published master rebased onto %s and tagged it as %s.\n' "$release" "$ellie_tag"
+	finalize_release "$ellie_tag"
+	rm -f "$state_dir/pending-publication"
+	printf 'Published and installed %s (upstream %s).\n' "$ellie_tag" "$release"
 }
 
 if [ "$mode" = check ]; then
@@ -175,6 +187,12 @@ if [ "$mode" = check ]; then
 	exit 0
 fi
 
+workflow_lock="$state_dir/update.lock"
+mkdir "$workflow_lock" 2>/dev/null || die "another update is running ($workflow_lock)"
+trap 'rmdir "$workflow_lock"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
 [ ! -d "$(git rev-parse --git-path rebase-merge)" ] || die "a rebase is already in progress"
 [ ! -d "$(git rev-parse --git-path rebase-apply)" ] || die "a rebase is already in progress"
 if [ "$mode" = finish ] || [ "$mode" = release ]; then
@@ -187,14 +205,23 @@ fi
 
 fetch_origin
 fetch_releases
-[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/master)" ] || die "master must exactly match origin/master"
+# An interrupted update may already be rebased locally. --finish retains its lease.
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/master)" ]; then
+	if [ -f "$lease_file" ]; then
+		release=$(sed -n '1p' "$lease_file")
+		validate_and_publish "$release"
+		exit 0
+	fi
+	die "master must exactly match origin/master; use --release TAG for local changes"
+fi
 
 release=$(latest_release)
 [ -n "$release" ] || die "no upstream production release tag was found"
 release_commit=$(git rev-parse "$release^{commit}")
 if git merge-base --is-ancestor "$release_commit" HEAD; then
 	if git tag --points-at HEAD --list "ellie-release-${release#tutanota-desktop-release-}-r*" | grep -q .; then
-		printf 'Already published at the latest upstream release: %s.\n' "$release"
+		printf 'Already tagged at the latest upstream release; ensuring release and installation are complete.\n'
+		validate_and_publish "$release"
 		exit 0
 	fi
 	die "already based on $release; validate the unpublished changes with --release $release"
