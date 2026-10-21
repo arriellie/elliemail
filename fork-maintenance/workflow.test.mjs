@@ -47,6 +47,16 @@ if (process.env.SIMULATE_REMOTE_CHANGE) {
 console.log('Fixture validation passed');
 `,
 	)
+	writeFileSync(
+		join(root, "fork-maintenance/finalize-release.mjs"),
+		`
+import { appendFileSync } from 'node:fs';
+if (process.argv[2] !== '--preflight') {
+  appendFileSync('.git/finalized', process.argv[2] + '\\n');
+  if (process.env.SIMULATE_FINALIZE_FAILURE) process.exit(1);
+}
+`,
+	)
 	writeFileSync(join(root, ".gitignore"), "artifacts\n")
 	git("add", ".")
 	git("commit", "-m", "downstream patch")
@@ -77,10 +87,10 @@ test("validation-only rebases, preserves a backup and lease, and can publish on 
 		const original = f.git("rev-parse", "HEAD")
 		const validation = f.run(["--validate-only"])
 		assert.equal(validation.status, 0, validation.stderr)
-		assert.match(validation.stdout, /Ready for manual smoke testing/)
+		assert.match(validation.stdout, /Automated validation passed/)
 		assert.equal(f.git("rev-parse", "origin/master"), original)
 		assert.match(f.git("branch", "--list", "backup/*"), /backup\/master-before-upstream-rebase-/)
-		const publication = f.run(["--finish", "tutanota-desktop-release-2.0.0", "--resume"], "yes\npublish\n")
+		const publication = f.run(["--finish", "tutanota-desktop-release-2.0.0", "--resume"], "")
 		assert.equal(publication.status, 0, publication.stderr)
 		assert.equal(f.git("rev-parse", "origin/master"), f.git("rev-parse", "HEAD"))
 		assert.equal(f.git("cat-file", "-t", "ellie-release-2.0.0-r1"), "tag")
@@ -88,7 +98,7 @@ test("validation-only rebases, preserves a backup and lease, and can publish on 
 			f.git("tag", "-l", "ellie-release-2.0.0-r1", "--format=%(contents)"),
 			/Upstream release: tutanota-desktop-release-2.0.0\nUpstream commit:/,
 		)
-		assert.match(f.run([]).stdout, /Already published/)
+		assert.match(f.run([]).stdout, /Already tagged/)
 	} finally {
 		rmSync(f.directory, { recursive: true, force: true })
 	}
@@ -97,7 +107,7 @@ test("validation-only rebases, preserves a backup and lease, and can publish on 
 test("a remote change during validation stops publication without a release tag", () => {
 	const f = fixture()
 	try {
-		const result = f.run([], "yes\npublish\n", { SIMULATE_REMOTE_CHANGE: f.origin })
+		const result = f.run([], "", { SIMULATE_REMOTE_CHANGE: f.origin })
 		assert.notEqual(result.status, 0)
 		assert.match(result.stderr, /origin\/master changed during validation/)
 		assert.equal(f.git("tag", "--list", "ellie-release-*"), "")
@@ -116,6 +126,24 @@ test("an unfinished rebase and an invalid release cannot enter validation", () =
 		const unfinished = f.run(["--finish", "tutanota-desktop-release-2.0.0"])
 		assert.notEqual(unfinished.status, 0)
 		assert.match(unfinished.stderr, /a rebase is already in progress/)
+	} finally {
+		rmSync(f.directory, { recursive: true, force: true })
+	}
+})
+
+test("an unattended update publishes, and retries finalization without another tag", () => {
+	const f = fixture()
+	try {
+		const first = f.run([], "", { SIMULATE_FINALIZE_FAILURE: "1" })
+		assert.notEqual(first.status, 0)
+		assert.equal(f.git("rev-parse", "origin/master"), f.git("rev-parse", "HEAD"))
+		const retry = f.run([])
+		assert.equal(retry.status, 0, retry.stderr)
+		assert.equal(f.git("tag", "--list", "ellie-release-*"), "ellie-release-2.0.0-r1")
+		assert.equal(
+			readFileSync(join(f.root, ".git/finalized"), "utf8"),
+			"ellie-release-2.0.0-r1\nellie-release-2.0.0-r1\n",
+		)
 	} finally {
 		rmSync(f.directory, { recursive: true, force: true })
 	}

@@ -25,8 +25,30 @@ for (const [app, baseName] of [
 			})
 			assert.equal(config.build.productName, baseName + suffix)
 			assert.equal(config.build.mac.executableName, baseName + suffix)
-			assert.equal(config.build.mac.identity, "-")
+			assert.equal(config.build.mac.identity, process.env.ELLIE_MAC_SIGNING_IDENTITY || "-")
 			assert.equal(config.build.appId, "io.arrie.elliemail" + nameSuffix)
 		})
 	}
 }
+
+test("an explicit local signing identity requires successful signing", async () => {
+	const previous = process.env.ELLIE_MAC_SIGNING_IDENTITY
+	try {
+		process.env.ELLIE_MAC_SIGNING_IDENTITY = "Local certificate"
+		const config = await generateTemplate({
+			app: "mail",
+			nameSuffix: "",
+			version: "1.0.0",
+			updateUrl: "",
+			iconPath: "resources/icon.png",
+			sign: false,
+			unpacked: true,
+			architecture: "arm64",
+		})
+		assert.equal(config.build.mac.identity, "Local certificate")
+		assert.equal(config.build.forceCodeSigning, true)
+	} finally {
+		if (previous === undefined) delete process.env.ELLIE_MAC_SIGNING_IDENTITY
+		else process.env.ELLIE_MAC_SIGNING_IDENTITY = previous
+	}
+})

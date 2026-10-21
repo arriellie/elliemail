@@ -70,7 +70,7 @@ export default async function generateTemplate({
 				role: "Editor",
 			},
 		],
-		forceCodeSigning: sign,
+		forceCodeSigning: sign || (!!process.env.ELLIE_MAC_SIGNING_IDENTITY && process.env.ELLIE_MAC_SIGNING_IDENTITY !== "-"),
 		publish: updateUrl
 			? {
 					provider: "generic",
@@ -119,7 +119,7 @@ export default async function generateTemplate({
 			// Electron fuses modify the pre-signed Electron Framework binary. When
 			// there is no release identity, explicitly ad-hoc sign the complete app
 			// afterward so macOS does not kill it for an invalid nested signature.
-			identity: sign ? undefined : "-",
+			identity: sign ? undefined : process.env.ELLIE_MAC_SIGNING_IDENTITY || "-",
 			hardenedRuntime: true,
 			type: "distribution",
 			gatekeeperAssess: false,

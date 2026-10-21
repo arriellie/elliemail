@@ -22,10 +22,6 @@ git merge-base --is-ancestor "$expected_origin" master || die "master must inclu
 merge_commits=$(git rev-list --merges --count "$expected_origin..master")
 [ "$merge_commits" -eq 0 ] || die "master contains merge commits; integrate private work with a fast-forward merge"
 
-printf 'Type publish to update origin/master from %s to %s: ' "$expected_origin" "$(git rev-parse HEAD)"
-read -r answer
-[ "$answer" = "publish" ] || die "publication cancelled"
-
 # The inherited upstream hook blocks direct master pushes. This controlled fork
 # deliberately publishes a verified linear branch, while the lease prevents an
 # overwrite if origin/master changes after the fetch above.
