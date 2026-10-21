@@ -114,12 +114,11 @@ function main() {
 	if (tag === "--preflight") return
 	if (!/^ellie-release-\d+\.\d+\.\d+-r\d+$/.test(tag ?? "")) throw new Error("Expected an Ellie release tag")
 	const root = command("git", ["rev-parse", "--show-toplevel"])
-	const head = command("git", ["rev-parse", "HEAD"])
-	if (command("git", ["rev-parse", `${tag}^{commit}`]) !== head) throw new Error("Release tag does not match HEAD")
+	const head = command("git", ["rev-parse", `${tag}^{commit}`])
+	command("git", ["merge-base", "--is-ancestor", head, "HEAD"])
+	command("git", ["diff", "--quiet", head, "HEAD", "--", ".", ":(exclude)fork-maintenance"])
 	const directory = resolve(root, command("git", ["rev-parse", "--git-path", "fork-maintenance"]))
-	const receipt = JSON.parse(readFileSync(join(directory, "validation.json"), "utf8"))
-	if (receipt.head !== head || !receipt.completed.includes("tests"))
-		throw new Error("Complete automated validation first")
+
 	const app = artifact(root)
 	command("codesign", ["--verify", "--deep", "--strict", app])
 	const output = join(directory, "releases", tag)
@@ -135,7 +134,10 @@ function main() {
 	} catch {
 		/* First package. */
 	}
-	if (packageState?.seal !== seal || !existsSync(archive) || !existsSync(checksum)) {
+	if (packageState?.head !== head || packageState?.seal !== seal || !existsSync(archive) || !existsSync(checksum)) {
+		const receipt = JSON.parse(readFileSync(join(directory, "validation.json"), "utf8"))
+		if (receipt.head !== head || !receipt.completed.includes("tests"))
+			throw new Error("Cached release artifact changed or is missing; validate a new release before packaging")
 		const temporary = `${archive}.tmp.zip`
 		rmSync(temporary, { force: true })
 		command("ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", app, temporary])
