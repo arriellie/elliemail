@@ -137,7 +137,7 @@ test("an unattended update publishes, and retries finalization without another t
 		const first = f.run([], "", { SIMULATE_FINALIZE_FAILURE: "1" })
 		assert.notEqual(first.status, 0)
 		assert.equal(f.git("rev-parse", "origin/master"), f.git("rev-parse", "HEAD"))
-		const retry = f.run([])
+		const retry = f.run(["--finish", "tutanota-desktop-release-2.0.0"])
 		assert.equal(retry.status, 0, retry.stderr)
 		assert.equal(f.git("tag", "--list", "ellie-release-*"), "ellie-release-2.0.0-r1")
 		assert.equal(

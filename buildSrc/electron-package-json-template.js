@@ -120,6 +120,9 @@ export default async function generateTemplate({
 			// there is no release identity, explicitly ad-hoc sign the complete app
 			// afterward so macOS does not kill it for an invalid nested signature.
 			identity: sign ? undefined : process.env.ELLIE_MAC_SIGNING_IDENTITY || "-",
+			// Personal builds do not need a trusted timestamp. Avoid a network
+			// request for every nested binary while retaining normal code signing.
+			timestamp: sign ? undefined : "none",
 			hardenedRuntime: true,
 			type: "distribution",
 			gatekeeperAssess: false,

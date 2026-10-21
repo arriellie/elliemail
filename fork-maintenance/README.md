@@ -94,6 +94,7 @@ Trust is restricted to code signing for the current user. Only Apple's signing t
 Back up this directory securely: replacing its certificate changes the app identity again.
 
 The release helper automatically unlocks that dedicated keychain and selects the saved certificate for every build.
+Local builds omit timestamp-server requests for each nested binary; normal signature verification still runs.
 It fails if the selected identity cannot sign. `ELLIE_MAC_SIGNING_IDENTITY` and `CSC_KEYCHAIN` can select an existing
 certificate instead. Preserve the same bundle ID, app name, certificate and credential store across releases.
 

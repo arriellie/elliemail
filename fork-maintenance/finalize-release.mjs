@@ -8,7 +8,7 @@ import { createHash } from "node:crypto"
 import { artifact } from "./validation.mjs"
 
 function command(executable, args, options = {}) {
-	const result = spawnSync(executable, args, { encoding: "utf8", ...options })
+	const result = spawnSync(executable, args, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024, ...options })
 	if (result.error || result.status !== 0)
 		throw new Error(`${executable} ${args[0]} failed: ${result.error?.message ?? result.stderr}`)
 	return result.stdout.trim()
@@ -49,14 +49,19 @@ export function installApp(source, tag, directory, run = command, applications =
 	const staging = join(applications, ".Ellie Mail.update.app")
 	const previous = join(applications, ".Ellie Mail.previous.app")
 	const receipt = join(directory, "installed.json")
-	if (existsSync(receipt) && existsSync(destination)) {
-		const installed = JSON.parse(readFileSync(receipt, "utf8"))
-		if (installed.tag === tag && appSeal(source) === appSeal(destination)) {
-			run("codesign", ["--verify", "--deep", "--strict", destination])
-			console.log(`Already installed: ${destination}`)
-			return
+	try {
+		if (existsSync(receipt) && existsSync(destination)) {
+			const installed = JSON.parse(readFileSync(receipt, "utf8"))
+			if (installed.tag === tag && appSeal(source) === appSeal(destination)) {
+				run("codesign", ["--verify", "--deep", "--strict", destination])
+				console.log(`Already installed: ${destination}`)
+				return
+			}
 		}
+	} catch {
+		// Repair an incomplete receipt or damaged installed bundle by staging a fresh copy.
 	}
+
 	rmSync(staging, { recursive: true, force: true })
 	run("ditto", [source, staging])
 	run("codesign", ["--verify", "--deep", "--strict", staging])
