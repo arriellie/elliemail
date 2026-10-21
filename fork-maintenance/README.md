@@ -60,7 +60,7 @@ and signed app seal. This avoids rebuilds caused by irrelevant environment chang
 
 Matching validation checkpoints are reused by default (`--resume` remains an accepted explicit alias). They match the
 commit, tools, environment, and metadata of sources, dependencies, submodules and generated outputs. Git internals and
-compiler caches are excluded. Environment, preflight and signature checks always run. Successful stages keep logs and
+compiler caches and volatile agent invocation metadata are excluded. Environment, preflight and signature checks always run. Successful stages keep logs and
 checkpoints in the Git-local state directory; failures print only the last 60 lines. This is a local resume guard, not an
 integrity attestation. ZIPs are reused when the signed app resource seal is unchanged.
 
