@@ -225,9 +225,14 @@ release=$(latest_release)
 [ -n "$release" ] || die "no upstream production release tag was found"
 release_commit=$(git rev-parse "$release^{commit}")
 if git merge-base --is-ancestor "$release_commit" HEAD; then
-	if git tag --points-at HEAD --list "ellie-release-${release#tutanota-desktop-release-}-r*" | grep -q .; then
-		printf 'Already tagged at the latest upstream release; ensuring release and installation are complete.\n'
-		validate_and_publish "$release"
+	# An already-published app needs artifact/release/install verification, not a rebuild.
+	# Maintenance-only commits do not change the application and can share that build.
+	ellie_tag=$(git tag --merged HEAD --list "ellie-release-${release#tutanota-desktop-release-}-r*" --sort=-version:refname | sed -n '1p')
+	if [ -n "$ellie_tag" ] && "$resume" && ! "$validate_only" &&
+		git diff --quiet "$ellie_tag" HEAD -- . ':(exclude)fork-maintenance'; then
+		printf 'Already published at the latest upstream release; verifying release and installation.\n'
+		finalize_release "$ellie_tag"
+		rm -f "$lease_file" "$state_dir/pending-publication"
 		exit 0
 	fi
 	die "already based on $release; validate the unpublished changes with --release $release"

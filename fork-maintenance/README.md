@@ -53,6 +53,11 @@ There is no authenticated mailbox smoke-test gate. Automated checks do not estab
 ./fork-maintenance/update-from-upstream-release.sh --release <upstream-tag> --fresh
 ```
 
+Already-published releases verify the cached signed artifact, GitHub asset digests and installed copy directly, without
+reinstalling dependencies or rebuilding. Maintenance-only commits under `fork-maintenance/` can reuse the same application
+release; any application/build change requires a new validated release. The cached package must match the release commit
+and signed app seal. This avoids rebuilds caused by irrelevant environment changes on subsequent invocations.
+
 Matching validation checkpoints are reused by default (`--resume` remains an accepted explicit alias). They match the
 commit, tools, environment, and metadata of sources, dependencies, submodules and generated outputs. Git internals and
 compiler caches are excluded. Environment, preflight and signature checks always run. Successful stages keep logs and
