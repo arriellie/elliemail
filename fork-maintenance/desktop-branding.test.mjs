@@ -26,6 +26,7 @@ for (const [app, baseName] of [
 			assert.equal(config.build.productName, baseName + suffix)
 			assert.equal(config.build.mac.executableName, baseName + suffix)
 			assert.equal(config.build.mac.identity, process.env.ELLIE_MAC_SIGNING_IDENTITY || "-")
+			assert.equal(config.build.mac.timestamp, "none")
 			assert.equal(config.build.appId, "io.arrie.elliemail" + nameSuffix)
 		})
 	}
