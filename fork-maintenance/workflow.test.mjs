@@ -40,6 +40,8 @@ function fixture() {
 		join(root, "fork-maintenance/validation.mjs"),
 		`
 import { spawnSync } from 'node:child_process';
+import { appendFileSync } from 'node:fs';
+appendFileSync('.git/validation-runs', 'run\\n');
 if (process.env.SIMULATE_REMOTE_CHANGE) {
   const result = spawnSync('git', ['--git-dir', process.env.SIMULATE_REMOTE_CHANGE, 'update-ref', 'refs/heads/master', 'refs/tags/tutanota-desktop-release-1.0.0']);
   if (result.status !== 0) process.exit(1);
@@ -98,7 +100,15 @@ test("validation-only rebases, preserves a backup and lease, and can publish on 
 			f.git("tag", "-l", "ellie-release-2.0.0-r1", "--format=%(contents)"),
 			/Upstream release: tutanota-desktop-release-2.0.0\nUpstream commit:/,
 		)
-		assert.match(f.run([]).stdout, /Already tagged/)
+		const runs = readFileSync(join(f.root, ".git/validation-runs"), "utf8")
+		assert.match(f.run([]).stdout, /Already published/)
+		assert.equal(readFileSync(join(f.root, ".git/validation-runs"), "utf8"), runs)
+		writeFileSync(join(f.root, "fork-maintenance/notes"), "maintenance documentation")
+		f.git("add", ".")
+		f.git("commit", "-m", "maintenance only")
+		f.git("push", "origin", "master")
+		assert.equal(f.run([]).status, 0)
+		assert.equal(readFileSync(join(f.root, ".git/validation-runs"), "utf8"), runs)
 	} finally {
 		rmSync(f.directory, { recursive: true, force: true })
 	}
