@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, utimesSync, symlinkSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { fingerprint, reusableStages } from "./validation.mjs"
+import { environmentIdentity, fingerprint, reusableStages } from "./validation.mjs"
 
 test("resume invalidates checks when source, dependencies, artifacts or environment change", () => {
 	const root = mkdtempSync(join(tmpdir(), "ellie-validation-"))
@@ -38,4 +38,26 @@ test("only an explicitly resumed, matching, ordered checkpoint can skip stages",
 	assert.deepEqual(reusableStages(state, "unchanged", stages, false), [])
 	assert.deepEqual(reusableStages({ ...state, completed: ["tests"] }, "unchanged", stages, true), [])
 	assert.deepEqual(reusableStages(undefined, "unchanged", stages, true), [])
+})
+
+test("resume ignores agent invocation metadata but retains build environment changes", () => {
+	const first = {
+		CODEX_TOOL_CALL_ID: "first",
+		CODEX_SESSION_ID: "one",
+		FNM_MULTISHELL_PATH: "/one",
+		PATH: "/one/bin:/usr/bin",
+		NODE_OPTIONS: "--max-old-space-size=4096",
+	}
+	const second = {
+		...first,
+		CODEX_TOOL_CALL_ID: "second",
+		CODEX_SESSION_ID: "two",
+		FNM_MULTISHELL_PATH: "/two",
+		PATH: "/two/bin:/usr/bin",
+	}
+	assert.deepEqual(environmentIdentity(first), environmentIdentity(second))
+	assert.notDeepEqual(
+		environmentIdentity(first),
+		environmentIdentity({ ...second, NODE_OPTIONS: "--max-old-space-size=8192" }),
+	)
 })
