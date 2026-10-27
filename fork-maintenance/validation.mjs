@@ -118,7 +118,7 @@ async function runStage(root, directory, name, executable, args) {
 	console.log(`Running ${name} (log: ${log})`)
 	const heartbeat = setInterval(
 		() => console.log(`Running ${name}: ${Math.round((Date.now() - started) / 1000)}s elapsed`),
-		30000,
+		60000,
 	)
 	try {
 		await new Promise((resolve, reject) => {
