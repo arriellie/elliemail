@@ -1,8 +1,8 @@
 # Maintaining the Ellie Mail fork
 
 For an agent-assisted update, read this file and run the helper. No manual smoke test or publication confirmation is
-required. The complete operation validates, publishes a GitHub Release explicitly marked **Latest**, uploads the app
-and SHA-256 checksum, and installs it into `/Applications/Ellie Mail.app`.
+required. The complete operation validates, publishes a source/tag GitHub Release explicitly marked **Latest**, and
+installs the locally signed build into `/Applications/Ellie Mail.app`.
 
 ```sh
 # Cheap discovery only (no build).
@@ -26,10 +26,10 @@ The helper starts from clean `master` matching `origin/master`, fetches only rel
 new tag with an exact force-with-lease. It bypasses the inherited pre-push hook, which rejects this fork's direct master
 publication. Remote changes, dirty sources, merge commits, and a newer upstream release stop publication.
 
-After the push, the helper creates a draft GitHub Release, uploads the macOS app ZIP and checksum, then publishes it
-with `--latest` and verifies GitHub's Latest endpoint. An upload or install failure is an incomplete update: rerun the
-same command to finish the same release without creating another revision. Published assets are never overwritten;
-retries verify their SHA-256 digests. Git publication, GitHub publication, and local installation cannot be one transaction.
+After the push, the helper creates a draft GitHub Release from the immutable tag, publishes it with `--latest`, verifies
+GitHub's Latest endpoint, and installs the already-validated local build. GitHub supplies the source archives; the personal
+macOS build is not uploaded. A release or install failure is an incomplete update: rerun the same command to finish the
+same release without creating another revision. Git publication, GitHub publication, and local installation cannot be one transaction.
 
 Installation stages and verifies the new app before replacing the installed copy. A running installed Ellie Mail receives
 SIGTERM and up to 30 seconds to quit normally, then reopens after replacement. The prior bundle remains at
@@ -53,16 +53,16 @@ There is no authenticated mailbox smoke-test gate. Automated checks do not estab
 ./fork-maintenance/update-from-upstream-release.sh --release <upstream-tag> --fresh
 ```
 
-Already-published releases verify the cached signed artifact, GitHub asset digests and installed copy directly, without
+Already-published releases verify the cached signed artifact, GitHub release and installed copy directly, without
 reinstalling dependencies or rebuilding. Maintenance-only commits under `fork-maintenance/` can reuse the same application
-release; any application/build change requires a new validated release. The cached package must match the release commit
-and signed app seal. This avoids rebuilds caused by irrelevant environment changes on subsequent invocations.
+release; any application/build change requires a new validated release. The cached artifact must come from the validated
+release commit and retain a valid signature. This avoids rebuilds caused by irrelevant environment changes on subsequent invocations.
 
 Matching validation checkpoints are reused by default (`--resume` remains an accepted explicit alias). They match the
 commit, tools, environment, and metadata of sources, dependencies, submodules and generated outputs. Git internals and
 compiler caches and volatile agent invocation metadata are excluded. Environment, preflight and signature checks always run. Successful stages keep logs and
 checkpoints in the Git-local state directory; failures print only the last 60 lines. This is a local resume guard, not an
-integrity attestation. ZIPs are reused when the signed app resource seal is unchanged.
+integrity attestation. Long stages emit only one compact liveness line per minute.
 
 ```sh
 git rev-parse --git-path fork-maintenance

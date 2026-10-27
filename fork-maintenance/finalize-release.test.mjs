@@ -3,19 +3,14 @@ import assert from "node:assert/strict"
 import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { createHash } from "node:crypto"
 import { installApp, publishRelease } from "./finalize-release.mjs"
 
 function fixture() {
 	const root = mkdtempSync(join(tmpdir(), "ellie-finalize-"))
-	const archive = join(root, "release.zip")
-	const checksum = `${archive}.sha256`
-	writeFileSync(archive, "app archive")
-	writeFileSync(checksum, "checksum")
-	return { root, archive, checksum }
+	return { root }
 }
 
-test("GitHub release uploads to a draft before publishing Latest; retries skip matching assets", () => {
+test("GitHub release is created from the tag, marked Latest, and never uploads the local app", () => {
 	const f = fixture()
 	try {
 		let release
@@ -32,46 +27,33 @@ test("GitHub release uploads to a draft before publishing Latest; retries skip m
 					html_url: "https://example.invalid/release",
 					draft: true,
 				}
-			if (args[1] === "upload") {
-				assert.equal(release.draft, true)
-				release.assets.push({
-					name: args[3].split("/").at(-1),
-					digest: `sha256:${createHash("sha256").update(readFileSync(args[3])).digest("hex")}`,
-				})
-			}
 			if (args[1] === "edit") {
-				assert.equal(release.assets.length, 2)
 				assert.ok(args.includes("--latest"))
 				release.draft = false
 			}
 			return ""
 		}
-		publishRelease("ellie-release-1.0.0-r1", f.archive, f.checksum, run)
-		publishRelease("ellie-release-1.0.0-r1", f.archive, f.checksum, run)
+		publishRelease("ellie-release-1.0.0-r1", run)
+		publishRelease("ellie-release-1.0.0-r1", run)
 		assert.equal(calls.filter((args) => args[1] === "create").length, 1)
-		assert.equal(calls.filter((args) => args[1] === "upload").length, 2)
-		writeFileSync(f.archive, "different build")
-		assert.throws(
-			() => publishRelease("ellie-release-1.0.0-r1", f.archive, f.checksum, run),
-			/different or unavailable checksum/,
-		)
+		assert.equal(calls.some((args) => args[1] === "upload"), false)
 	} finally {
 		rmSync(f.root, { recursive: true, force: true })
 	}
 })
 
-test("an upload failure leaves the release unpublished", () => {
+test("a release creation failure does not attempt publication", () => {
 	const f = fixture()
 	try {
 		const calls = []
 		assert.throws(
 			() =>
-				publishRelease("tag", f.archive, f.checksum, (exe, args) => {
+				publishRelease("tag", (exe, args) => {
 					calls.push(args)
 					if (args[0] === "api") return "[[]]"
-					if (args[1] === "upload") throw new Error("upload failed")
+					if (args[1] === "create") throw new Error("create failed")
 				}),
-			/upload failed/,
+			/create failed/,
 		)
 		assert.equal(
 			calls.some((args) => args[1] === "edit"),

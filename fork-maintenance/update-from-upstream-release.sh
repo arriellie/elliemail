@@ -169,7 +169,7 @@ validate_and_publish() {
 	# bypass only that local hook while retaining the exact remote-state lease.
 	git tag -a "$ellie_tag" -m "Ellie release $ellie_tag" -m "$(printf 'Upstream release: %s\nUpstream commit: %s\nDownstream commit: %s' "$release" "$release_commit" "$(git rev-parse HEAD)")"
 	printf '%s\n%s\n' "$validated_head" "$ellie_tag" > "$state_dir/pending-publication"
-	if ! git push --atomic --no-verify --force-with-lease="refs/heads/master:$expected_origin" origin master "refs/tags/$ellie_tag"; then
+	if ! git push --quiet --atomic --no-verify --force-with-lease="refs/heads/master:$expected_origin" origin master "refs/tags/$ellie_tag"; then
 		git tag -d "$ellie_tag"
 		die "atomic publication failed; the saved lease and validation receipt are retained"
 	fi

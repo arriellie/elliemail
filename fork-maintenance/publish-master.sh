@@ -25,5 +25,5 @@ merge_commits=$(git rev-list --merges --count "$expected_origin..master")
 # The inherited upstream hook blocks direct master pushes. This controlled fork
 # deliberately publishes a verified linear branch, while the lease prevents an
 # overwrite if origin/master changes after the fetch above.
-git push --no-verify --force-with-lease="refs/heads/master:$expected_origin" origin master
+git push --quiet --no-verify --force-with-lease="refs/heads/master:$expected_origin" origin master
 printf 'Published master.\n'
