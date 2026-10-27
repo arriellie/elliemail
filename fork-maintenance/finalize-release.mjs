@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { accessSync, constants, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
+import { accessSync, constants, existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { spawnSync } from "node:child_process"
 import { fileURLToPath } from "node:url"
@@ -21,22 +21,12 @@ function appSeal(path) {
 		.digest("hex")
 }
 
-// Draft first, upload before publishing, explicitly mark Latest. All steps are retryable.
-export function publishRelease(tag, archive, checksum, run = command) {
+// Create from the immutable tag and explicitly mark Latest. GitHub supplies the
+// source archives; the locally signed personal build is installed directly.
+export function publishRelease(tag, run = command) {
 	const releases = JSON.parse(run("gh", ["api", "repos/{owner}/{repo}/releases", "--paginate", "--slurp"]))
 	const existing = releases.flat().find((release) => release.tag_name === tag)
 	if (!existing) run("gh", ["release", "create", tag, "--verify-tag", "--draft", "--title", tag, "--notes-from-tag"])
-	// Existing published assets may be immutable. Never replace them on a retry.
-	for (const path of [archive, checksum]) {
-		const name = path.split("/").at(-1)
-		const asset = existing?.assets.find((asset) => asset.name === name)
-		const digest = `sha256:${createHash("sha256").update(readFileSync(path)).digest("hex")}`
-		if (asset && asset.digest !== digest)
-			throw new Error(
-				`Published asset ${name} has a different or unavailable checksum; refusing to install a different build`,
-			)
-		if (!asset) run("gh", ["release", "upload", tag, path])
-	}
 	run("gh", ["release", "edit", tag, "--draft=false", "--prerelease=false", "--latest"])
 	const latest = JSON.parse(run("gh", ["api", "repos/{owner}/{repo}/releases/latest"]))
 	if (latest.tag_name !== tag) throw new Error(`GitHub Latest release is ${latest.tag_name}, expected ${tag}`)
@@ -121,32 +111,10 @@ function main() {
 
 	const app = artifact(root)
 	command("codesign", ["--verify", "--deep", "--strict", app])
-	const output = join(directory, "releases", tag)
-	mkdirSync(output, { recursive: true })
-	const archive = join(output, `${tag}-mac-${process.arch}.zip`)
-	const checksum = `${archive}.sha256`
-	const packaged = join(output, "packaged.json")
-	// HEAD is immutable here; avoid recompressing the same validated build on retries.
-	const seal = appSeal(app)
-	let packageState
-	try {
-		packageState = JSON.parse(readFileSync(packaged, "utf8"))
-	} catch {
-		/* First package. */
-	}
-	if (packageState?.head !== head || packageState?.seal !== seal || !existsSync(archive) || !existsSync(checksum)) {
-		const receipt = JSON.parse(readFileSync(join(directory, "validation.json"), "utf8"))
-		if (receipt.head !== head || !receipt.completed.includes("tests"))
-			throw new Error("Cached release artifact changed or is missing; validate a new release before packaging")
-		const temporary = `${archive}.tmp.zip`
-		rmSync(temporary, { force: true })
-		command("ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", app, temporary])
-		renameSync(temporary, archive)
-		const digest = command("shasum", ["-a", "256", archive]).split(/\s/)[0]
-		writeFileSync(checksum, `${digest}  ${archive.split("/").at(-1)}\n`)
-		writeFileSync(packaged, JSON.stringify({ head, seal }) + "\n")
-	}
-	publishRelease(tag, archive, checksum)
+	const receipt = JSON.parse(readFileSync(join(directory, "validation.json"), "utf8"))
+	if (receipt.head !== head || !receipt.completed.includes("tests"))
+		throw new Error("Cached release artifact is missing validation; validate the release before installation")
+	publishRelease(tag)
 	installApp(app, tag, directory)
 }
 
