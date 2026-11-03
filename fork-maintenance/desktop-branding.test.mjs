@@ -53,3 +53,28 @@ test("an explicit local signing identity requires successful signing", async () 
 		else process.env.ELLIE_MAC_SIGNING_IDENTITY = previous
 	}
 })
+
+test("custom releases use local macOS signing with update signature checks enabled", async () => {
+	const previous = process.env.ELLIE_MAC_SIGNING_IDENTITY
+	try {
+		process.env.ELLIE_MAC_SIGNING_IDENTITY = "Local certificate"
+		const config = await generateTemplate({
+			app: "mail",
+			nameSuffix: "",
+			version: "1.0.0",
+			updateUrl: "",
+			enableUpstreamDesktopReleaseTracking: true,
+			iconPath: "resources/icon.png",
+			sign: true,
+			unpacked: true,
+			architecture: "arm64",
+		})
+		assert.equal(config.build.mac.identity, "Local certificate")
+		assert.equal(config.build.mac.timestamp, "none")
+		assert.equal(config.build.forceCodeSigning, true)
+		assert.equal(config["tutao-config"].checkUpdateSignature, true)
+	} finally {
+		if (previous === undefined) delete process.env.ELLIE_MAC_SIGNING_IDENTITY
+		else process.env.ELLIE_MAC_SIGNING_IDENTITY = previous
+	}
+})
