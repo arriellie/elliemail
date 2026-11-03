@@ -41,6 +41,7 @@ export default async function generateTemplate({
 	const appId = "io.arrie.elliemail" + nameSuffix
 	const variant = getStockAppVariantFromNameSuffix(nameSuffix)
 	const productName = getStockAppDisplayName(app, variant)
+	const useLocalMacSigning = !sign || enableUpstreamDesktopReleaseTracking === true
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
 	const debugKey = process.env.DEBUG_SIGN ? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), { encoding: "utf8" }) : undefined
 	const log = console.log.bind(console)
@@ -119,10 +120,10 @@ export default async function generateTemplate({
 			// Electron fuses modify the pre-signed Electron Framework binary. When
 			// there is no release identity, explicitly ad-hoc sign the complete app
 			// afterward so macOS does not kill it for an invalid nested signature.
-			identity: sign ? undefined : process.env.ELLIE_MAC_SIGNING_IDENTITY || "-",
+			identity: useLocalMacSigning ? process.env.ELLIE_MAC_SIGNING_IDENTITY || "-" : undefined,
 			// Personal builds do not need a trusted timestamp. Avoid a network
 			// request for every nested binary while retaining normal code signing.
-			timestamp: sign ? undefined : "none",
+			timestamp: useLocalMacSigning ? "none" : undefined,
 			hardenedRuntime: true,
 			type: "distribution",
 			gatekeeperAssess: false,
